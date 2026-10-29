@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
+import 'home_screen.dart';
+import '../services/auth_service.dart';
 
 const Color primaryCrimson = Color(0xFFB5103C);
 const Color darkCrimson = Color(0xFF6B0720);
@@ -16,7 +18,55 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  bool _obscurePassword = true;
+    bool _obscurePassword = true;
+
+  
+  final AuthService _authService = AuthService();
+
+    bool _isLoading = false;
+
+    Future<void> _login() async {
+      if (!_formKey.currentState!.validate()) {
+        return;
+      }
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final result = await _authService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      final user = Map<String, dynamic>.from(result['user'] as Map);
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => HomeScreen(user: user)),
+        (route) => false,
+      );
+
+        // Token sudah tersimpan di Secure Storage.
+      } catch (e) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
 
   @override
   void dispose() {
@@ -135,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: Image.asset(
-                              'assets/images/logoBesar.png',
+                              'assets/images/logo-StuntGuard.png',
                               fit: BoxFit.contain,
                               errorBuilder: (context, error, stackTrace) {
                                 return const Center(
@@ -331,16 +381,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Login berhasil!'),
-                                    backgroundColor: primaryCrimson,
-                                  ),
-                                );
-                              }
-                            },
+                            onPressed: _isLoading ? null : _login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFBD0D3A),
                               foregroundColor: Colors.white,
@@ -406,7 +447,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Copyright
                         const Center(
                           child: Text(
-                            '© 2026 StunGuard Jember. Hak Cipta Dilindungi.',
+                            '© 2026 StunGuard Jember. Made by kelompok 2',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 10,

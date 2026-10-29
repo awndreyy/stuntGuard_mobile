@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stuntguardmobile/screens/login_screen.dart';
+import '../services/auth_service.dart';
 
 const Color primaryCrimson = Color(0xFFB5103C);
 const Color darkCrimson = Color(0xFF6B0720);
@@ -18,6 +19,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nikController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  
+  final AuthService _authService = AuthService();
+
+    bool _isLoading = false;
+
+    Future<void> _register() async {
+      if (!_formKey.currentState!.validate()) {
+        return;
+      }
+
+      if (!_setuju) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Silakan centang persetujuan data terlebih dahulu.'),
+          ),
+        );
+        return;
+      }
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await _authService.register(
+          nama: _namaController.text.trim(),
+          nik: _nikController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registrasi berhasil! Silakan login.')),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      } catch (e) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+
 
   bool _obscurePassword = true;
   bool _setuju = false;
@@ -154,7 +214,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: Image.asset(
-                              'assets/images/logoBesar.png',
+                              'assets/images/logo-StuntGuard.png',
                               fit: BoxFit.contain,
                               errorBuilder: (context, error, stackTrace) {
                                 return const Center(
@@ -432,7 +492,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // 5. Terms Checkbox
+                        // 5. Checkbox
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -489,29 +549,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: () {
-                              if (!_formKey.currentState!.validate()) {
-                                return;
-                              }
-                              if (!_setuju) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Silakan centang persetujuan data terlebih dahulu.',
-                                    ),
-                                    backgroundColor: primaryCrimson,
-                                  ),
-                                );
-                                return;
-                              }
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Registrasi berhasil!'),
-                                  backgroundColor: primaryCrimson,
-                                ),
-                              );
-                            },
+                            onPressed: _isLoading ? null : _register,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFBD0D3A),
                               foregroundColor: Colors.white,
@@ -578,7 +616,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         // 8. Footer Copyright
                         const Center(
                           child: Text(
-                            '© 2026 StunGuard Jember. Hak Cipta Dilindungi.',
+                            '© 2026 StunGuard Jember. Kelompok 2',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 10,
