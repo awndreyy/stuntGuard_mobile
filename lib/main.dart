@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'screens/welcome_screen.dart';
+import 'theme/sg_theme.dart';
 
 void main() {
   runApp(const StunGuardApp());
@@ -14,13 +15,7 @@ class StunGuardApp extends StatelessWidget {
     return MaterialApp(
       title: 'StuntGuard Jember',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        fontFamily: 'Roboto',
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFC8103D),
-        ),
-      ),
+      theme: SgTheme.lightTheme,
       home: const WelcomeScreen(),
     );
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
-import 'home_screen.dart';
+import '../navigation/main_navigation.dart';
 import '../services/auth_service.dart';
 
 const Color primaryCrimson = Color(0xFFB5103C);
@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final user = Map<String, dynamic>.from(result['user'] as Map);
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => HomeScreen(user: user)),
+        MaterialPageRoute(builder: (_) => MainNavigation(user: user)),
         (route) => false,
       );
 
