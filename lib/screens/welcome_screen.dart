@@ -128,7 +128,7 @@ class WelcomeScreen extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Image.asset(
-                          'assets/images/logoBesar.png',
+                          'assets/images/logo-StuntGuard.png',
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) {
                             return const Icon(
