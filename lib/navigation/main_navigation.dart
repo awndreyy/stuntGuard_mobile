@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../services/auth_service.dart';
 import '../screens/welcome_screen.dart';
 import '../theme/sg_theme.dart';
@@ -41,18 +42,25 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   void openCalculator() => setState(() => selected = 1);
+  void openMpasi() => setState(() => selected = 2);
 
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomeScreen(onOpenCalculator: openCalculator),
+      HomeScreen(onOpenCalculator: openCalculator, onOpenMpasi: openMpasi),
       const CalculatorScreen(),
       const MpasiScreen(),
       const EducationScreen(),
-      ProfileScreen(user: widget.user, onLogout: logout, isLoggingOut: isLoggingOut),
+      ProfileScreen(
+        user: widget.user,
+        onLogout: logout,
+        isLoggingOut: isLoggingOut,
+      ),
     ];
     return Scaffold(
-      body: SafeArea(child: IndexedStack(index: selected, children: pages)),
+      body: SafeArea(
+        child: IndexedStack(index: selected, children: pages),
+      ),
       bottomNavigationBar: NavigationBar(
         height: 74,
         backgroundColor: Colors.white,
@@ -61,16 +69,33 @@ class _MainNavigationState extends State<MainNavigation> {
         selectedIndex: selected,
         onDestinationSelected: (index) => setState(() => selected = index),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Beranda'),
-          NavigationDestination(icon: Icon(Icons.calculate_outlined), selectedIcon: Icon(Icons.calculate), label: 'Kalkulator'),
-          NavigationDestination(icon: Icon(Icons.restaurant_menu_outlined), selectedIcon: Icon(Icons.restaurant_menu), label: 'MPASI'),
-          NavigationDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book), label: 'Edukasi'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profil'),
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Beranda',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calculate_outlined),
+            selectedIcon: Icon(Icons.calculate),
+            label: 'Kalkulator',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.restaurant_menu_outlined),
+            selectedIcon: Icon(Icons.restaurant_menu),
+            label: 'MPASI',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Edukasi',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profil',
+          ),
         ],
       ),
     );
   }
-
-
-
 }
