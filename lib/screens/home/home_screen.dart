@@ -60,112 +60,147 @@ class _HomeScreenState extends State<HomeScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  @override
+  
+@override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+      padding: EdgeInsets.zero,
       children: [
+        // HEADER PINK
         _buildTopBar(),
-        const SizedBox(height: 22),
-        _buildGreeting(),
-        const SizedBox(height: 18),
-        _buildChildSelector(),
-        const SizedBox(height: 18),
-        _buildNutritionStatusCard(),
-        const SizedBox(height: 18),
-        _buildQuickActions(),
-        const SizedBox(height: 27),
-        _buildGrowthChartSection(),
-        const SizedBox(height: 27),
-        _buildMeasurementHistorySection(),
-        const SizedBox(height: 27),
-        _buildEducationSection(),
+
+        // KONTEN BERANDA
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 22, 18, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildNutritionStatusCard(),
+
+              const SizedBox(height: 18),
+
+              _buildQuickActions(),
+
+              const SizedBox(height: 27),
+
+              _buildGrowthChartSection(),
+
+              const SizedBox(height: 27),
+
+              _buildMeasurementHistorySection(),
+
+              const SizedBox(height: 27),
+
+              _buildEducationSection(),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildTopBar() {
-    return Row(
-      children: [
-        Image.asset(
-          'assets/images/logoBesar.png',
-          width: 42,
-          height: 42,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) =>
-              const Icon(Icons.shield_rounded, color: SG.primary, size: 38),
-        ),
-        const SizedBox(width: 9),
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+Widget _buildTopBar() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 26),
+      decoration: const BoxDecoration(
+        color: SG.primary,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // LOGO DAN IDENTITAS APLIKASI
+          Row(
             children: [
-              Text(
-                'StuntGuard',
-                style: TextStyle(
-                  color: SG.ink,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
+              Container(
+                width: 42,
+                height: 42,
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Image.asset(
+                  'assets/images/logo-StuntGuard.png',
+                  fit: BoxFit.contain,
                 ),
               ),
-              SizedBox(height: 2),
-              Text(
-                'KABUPATEN JEMBER',
-                style: TextStyle(
-                  color: SG.primary,
-                  fontSize: 9,
-                  letterSpacing: .45,
-                  fontWeight: FontWeight.w700,
+
+              const SizedBox(width: 11),
+
+              const Expanded(
+                child: Text(
+                  'StunGuard Jember',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+
+              // PROFIL
+              InkWell(
+                onTap: () {
+                  _showMessage('Menu profil akan tersedia di halaman Profil.');
+                },
+                borderRadius: BorderRadius.circular(24),
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.white.withValues(alpha: 0.16),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: Colors.white,
+                    size: 23,
+                  ),
                 ),
               ),
             ],
           ),
-        ),
-        IconButton(
-          tooltip: 'Notifikasi',
-          onPressed: () => _showMessage('Belum ada notifikasi baru.'),
-          icon: const Icon(Icons.notifications_none_rounded),
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: SG.ink,
-            side: const BorderSide(color: SG.line),
-          ),
-        ),
-        const SizedBox(width: 5),
-        InkWell(
-          onTap: () =>
-              _showMessage('Menu profil akan tersedia di halaman Profil.'),
-          borderRadius: BorderRadius.circular(24),
-          child: const CircleAvatar(
-            radius: 21,
-            backgroundColor: SG.pale,
-            child: Icon(Icons.person_rounded, color: SG.primary, size: 23),
-          ),
-        ),
-      ],
+
+          const SizedBox(height: 28),
+
+          // SAPAAN ORANG TUA
+          _buildGreeting(),
+
+          const SizedBox(height: 21),
+
+          // PEMILIHAN ANAK
+          _buildChildSelector(),
+        ],
+      ),
     );
   }
 
   Widget _buildGreeting() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Halo, Orang Tua! 👋',
-          style: TextStyle(
-            color: SG.ink,
-            fontSize: 23,
-            fontWeight: FontWeight.w800,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Halo, Orang Tua! 👋',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 27,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+            ),
           ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          'Pantau tumbuh kembang ${_activeChild.name} dengan penuh kasih.',
-          style: const TextStyle(color: SG.muted, fontSize: 13),
-        ),
-      ],
-    );
-  }
+
+          const SizedBox(height: 9),
+
+          Text(
+            'Pantau tumbuh kembang ${_activeChild.name} '
+            'dengan penuh kasih.',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.90),
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+        ],
+      );
+    }
 
   Widget _buildChildSelector() {
     return _card(

@@ -31,19 +31,26 @@ class ScreenContent extends StatelessWidget {
 class SurfaceCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
-  const SurfaceCard({super.key, required this.child, this.padding = const EdgeInsets.all(17)});
+
+  const SurfaceCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(17),
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: padding,
-      decoration: BoxDecoration(
+      child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: SG.line),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: SG.line),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(padding: padding, child: child),
       ),
-      child: child,
     );
   }
 }
