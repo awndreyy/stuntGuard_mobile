@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:stuntguardmobile/screens/login_screen.dart';
 import 'package:stuntguardmobile/screens/register_screen.dart';
@@ -159,7 +158,7 @@ class WelcomeScreen extends StatelessWidget {
                             ),
                             children: [
                               TextSpan(
-                                text: 'Stun',
+                                text: 'Stunt',
                                 style: TextStyle(
                                   color: Colors.white,
                                 ),

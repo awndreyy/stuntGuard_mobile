@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 /// Warna yang digunakan layar Beranda StunGuard.
 /// Class SG dipertahankan agar file screen/widget lama tidak perlu diubah.
 class SG {
-  static const Color primary = Color(0xFFD81B60);
-  static const Color pale = Color(0xFFFDE8EF);
-  static const Color background = Color(0xFFF8FAFC);
-  static const Color ink = Color(0xFF1E293B);
-  static const Color muted = Color(0xFF70737D);
-  static const Color line = Color(0xFFE8EAF0);
+  static const Color primary = Color(0xFFAC3156);
+  static const Color primaryDark = Color(0xFF852641);
+  static const Color pale = Color(0xFFF6E3E7);
+  static const Color soft = Color(0xFFFCF5F1);
+  static const Color background = Color(0xFFFFFDFA);
+  static const Color ink = Color(0xFF352F32);
+  static const Color muted = Color(0xFF6B6265);
+  static const Color line = Color(0xFFEADEDB);
   static const Color surface = Colors.white;
 }
 

@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import '../../theme/sg_theme.dart';
 
 class HomeScreen extends StatefulWidget {
+  final Map<String, dynamic> user;
   final VoidCallback onOpenCalculator;
   final VoidCallback? onOpenMpasi;
 
   const HomeScreen({
     super.key,
+    required this.user,
     required this.onOpenCalculator,
     this.onOpenMpasi,
   });
@@ -17,6 +19,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String get _userName {
+    final name = widget.user['name']?.toString().trim();
+
+    if (name == null || name.isEmpty) {
+      return 'Orang Tua';
+    }
+
+    return name;
+  }
+
   static const _children = [
     _ChildProfile(name: 'Danendra', age: '14 Bulan'),
     _ChildProfile(name: 'Aluna', age: '8 Bulan'),
@@ -177,8 +189,8 @@ Widget _buildTopBar() {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Halo, Orang Tua! 👋',
+          Text(
+            'Halo, ${_userName}!',
             style: TextStyle(
               color: Colors.white,
               fontSize: 27,

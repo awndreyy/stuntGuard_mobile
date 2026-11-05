@@ -63,7 +63,7 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomeScreen(onOpenCalculator: openCalculator, onOpenMpasi: openMpasi),
+      HomeScreen(user: widget.user, onOpenCalculator: openCalculator, onOpenMpasi: openMpasi),
       const MpasiScreen(),
       const CalculatorScreen(),
       const EducationScreen(),
