@@ -223,7 +223,7 @@ class _MpasiScreenState extends State<MpasiScreen> {
                   const SizedBox(width: 11),
                   const Expanded(
                     child: Text(
-                      'StunGuard Jember',
+                      'StuntGuard Jember',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,

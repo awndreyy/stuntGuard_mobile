@@ -131,7 +131,7 @@ Widget _buildTopBar() {
 
               const Expanded(
                 child: Text(
-                  'StunGuard Jember',
+                  'StuntGuard Jember',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
