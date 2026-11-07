@@ -63,7 +63,11 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomeScreen(user: widget.user, onOpenCalculator: openCalculator, onOpenMpasi: openMpasi),
+      HomeScreen(
+        user: widget.user,
+        onOpenCalculator: openCalculator,
+        onOpenMpasi: openMpasi,
+      ),
       const MpasiScreen(),
       const CalculatorScreen(),
       const EducationScreen(),
@@ -76,7 +80,9 @@ class _MainNavigationState extends State<MainNavigation> {
 
     return Scaffold(
       backgroundColor: SG.background,
+      extendBody: true,
       body: SafeArea(
+        bottom: false,
         child: IndexedStack(index: selected, children: pages),
       ),
       bottomNavigationBar: _buildBottomNavigation(),
@@ -86,72 +92,53 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget _buildBottomNavigation() {
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.only(bottom: 8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Container(
-          height: 112,
+          height: 76,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 14,
-                offset: const Offset(0, 3),
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: Column(
+            borderRadius: BorderRadius.circular(24),
+            child: Row(
               children: [
-                const SizedBox(
-                  width: double.infinity,
-                  height: 22,
-                  child: ColoredBox(color: Color(0xFFF5F6F8)),
+                _BottomNavItem(
+                  label: 'Beranda',
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  active: selected == 0,
+                  onTap: () => _selectTab(0),
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 2, 0, 7),
-                    child: Row(
-                      children: [
-                        _BottomNavItem(
-                          label: 'Beranda',
-                          icon: Icons.home_outlined,
-                          activeIcon: Icons.home_rounded,
-                          active: selected == 0,
-                          onTap: () => _selectTab(0),
-                        ),
-
-                        _BottomNavItem(
-                          label: 'MPASI',
-                          icon: Icons.ramen_dining_outlined,
-                          activeIcon: Icons.ramen_dining_rounded,
-                          active: selected == 1,
-                          onTap: () => _selectTab(1),
-                        ),
-
-                        _buildCenterCalculatorButton(),
-
-                        _BottomNavItem(
-                          label: 'Edukasi',
-                          icon: Icons.menu_book_outlined,
-                          activeIcon: Icons.menu_book_rounded,
-                          active: selected == 3,
-                          onTap: () => _selectTab(3),
-                        ),
-
-                        _BottomNavItem(
-                          label: 'Profil',
-                          icon: Icons.person_outline_rounded,
-                          activeIcon: Icons.person_rounded,
-                          active: selected == 4,
-                          onTap: () => _selectTab(4),
-                        ),
-                      ],
-                    ),
-                  ),
+                _BottomNavItem(
+                  label: 'MPASI',
+                  icon: Icons.ramen_dining_outlined,
+                  activeIcon: Icons.ramen_dining_rounded,
+                  active: selected == 1,
+                  onTap: () => _selectTab(1),
+                ),
+                _buildCenterCalculatorButton(),
+                _BottomNavItem(
+                  label: 'Edukasi',
+                  icon: Icons.menu_book_outlined,
+                  activeIcon: Icons.menu_book_rounded,
+                  active: selected == 3,
+                  onTap: () => _selectTab(3),
+                ),
+                _BottomNavItem(
+                  label: 'Profil',
+                  icon: Icons.person_outline_rounded,
+                  activeIcon: Icons.person_rounded,
+                  active: selected == 4,
+                  onTap: () => _selectTab(4),
                 ),
               ],
             ),

@@ -42,6 +42,36 @@ class ApiClient {
         .timeout(ApiConfig.timeout);
   }
 
+  static Future<http.Response> put(
+    String endpoint, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return _client
+        .put(
+          buildUri(endpoint),
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...?headers,
+          },
+          body: body,
+        )
+        .timeout(ApiConfig.timeout);
+  }
+
+  static Future<http.Response> delete(
+    String endpoint, {
+    Map<String, String>? headers,
+  }) {
+    return _client
+        .delete(
+          buildUri(endpoint),
+          headers: {'Accept': 'application/json', ...?headers},
+        )
+        .timeout(ApiConfig.timeout);
+  }
+
   static void close() {
     _client.close();
   }

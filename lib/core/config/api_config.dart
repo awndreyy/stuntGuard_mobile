@@ -5,11 +5,12 @@ class ApiConfig {
 
   static String get baseUrl {
     if (kIsWeb) {
-      // run di browser
+      // Flutter Web (Chrome di laptop)
       return 'http://127.0.0.1:8000/api';
     }
-    // run di emulator
-    return 'http://10.0.2.2:8000/api';
+
+    // Android Emulator atau HP fisik
+    return 'http://192.168.18.16:8000/api';
   }
 
   static const Duration timeout = Duration(seconds: 30);

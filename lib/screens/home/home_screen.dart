@@ -72,8 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  
-@override
+  @override
   Widget build(BuildContext context) {
     return ListView(
       padding: EdgeInsets.zero,
@@ -83,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // KONTEN BERANDA
         Padding(
-          padding: const EdgeInsets.fromLTRB(18, 22, 18, 28),
+          padding: const EdgeInsets.fromLTRB(18, 22, 18, 120),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -111,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-Widget _buildTopBar() {
+  Widget _buildTopBar() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 26),
@@ -186,33 +185,33 @@ Widget _buildTopBar() {
   }
 
   Widget _buildGreeting() {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Halo, ${_userName}!',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 27,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Halo, ${_userName}!',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 27,
+            fontWeight: FontWeight.w800,
+            height: 1.2,
           ),
+        ),
 
-          const SizedBox(height: 9),
+        const SizedBox(height: 9),
 
-          Text(
-            'Pantau tumbuh kembang ${_activeChild.name} '
-            'dengan penuh kasih.',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.90),
-              fontSize: 13,
-              height: 1.5,
-            ),
+        Text(
+          'Pantau tumbuh kembang ${_activeChild.name} '
+          'dengan penuh kasih.',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.90),
+            fontSize: 13,
+            height: 1.5,
           ),
-        ],
-      );
-    }
+        ),
+      ],
+    );
+  }
 
   Widget _buildChildSelector() {
     return _card(

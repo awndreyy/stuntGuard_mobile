@@ -248,7 +248,7 @@ class _MpasiScreenState extends State<MpasiScreen> {
           ),
 
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 24, 18, 28),
+            padding: const EdgeInsets.fromLTRB(18, 24, 18, 120),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

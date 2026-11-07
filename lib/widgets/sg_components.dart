@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/sg_theme.dart';
 
 class ScreenContent extends StatelessWidget {
@@ -16,9 +17,16 @@ class ScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
       children: [
-        Text(title, style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: SG.ink)),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.w800,
+            color: SG.ink,
+          ),
+        ),
         const SizedBox(height: 5),
         Text(subtitle, style: const TextStyle(fontSize: 13, color: SG.muted)),
         const SizedBox(height: 24),
@@ -62,12 +70,16 @@ class SectionHeader extends StatelessWidget {
   const SectionHeader(this.title, {super.key, this.action, this.onTap});
   @override
   Widget build(BuildContext context) => Row(
-        children: [
-          Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
-          if (action != null)
-            TextButton(onPressed: onTap, child: Text(action!)),
-        ],
-      );
+    children: [
+      Expanded(
+        child: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+        ),
+      ),
+      if (action != null) TextButton(onPressed: onTap, child: Text(action!)),
+    ],
+  );
 }
 
 // HALAMAN BERANDA - desain berdasarkan screenshot pengguna.
