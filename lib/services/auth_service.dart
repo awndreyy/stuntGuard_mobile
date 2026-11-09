@@ -65,6 +65,50 @@ class AuthService {
     return _storage.read(key: 'auth_token');
   }
 
+  // Hapus token dari perangkat.
+  Future<void> clearToken() async {
+    await _storage.delete(key: 'auth_token');
+  }
+
+  // Pulihkan sesi dan ambil data pengguna dari server.
+Future<Map<String, dynamic>?> restoreSession() async {
+  final token = await getToken();
+
+  if (token == null || token.trim().isEmpty) {
+    return null;
+  }
+
+  final response = await ApiClient.get(
+    'user',
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  // Token sudah kedaluwarsa atau dicabut.
+  if (response.statusCode == 401) {
+    await clearToken();
+    return null;
+  }
+
+  // Gangguan server tidak menghapus token.
+  if (response.statusCode != 200) {
+    throw Exception('Sesi belum dapat diperiksa. Silakan coba lagi.');
+  }
+
+  final data = _parseResponse(response.body);
+
+  // Mendukung respons user langsung maupun dibungkus user/data.
+  final user = data['user'] ?? data['data'] ?? data;
+
+  if (user is! Map) {
+    throw Exception('Data pengguna dari server tidak valid.');
+  }
+
+  return Map<String, dynamic>.from(user);
+}
+
   // LOGOUT
   Future<void> logout() async {
     final token = await getToken();

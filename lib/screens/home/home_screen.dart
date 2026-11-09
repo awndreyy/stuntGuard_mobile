@@ -1,17 +1,33 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/sg_theme.dart';
+/// Palette follows welcome_screen.dart without changing other screens.
+class _HomeColors {
+  static const primary = Color(0xFFC8103D);
+  static const dark = Color(0xFF8B1038);
+  static const yellow = Color(0xFFFFD84D);
+  static const background = Color(0xFFFFF8F6);
+  static const pale = Color(0xFFFFEBEF);
+  static const ink = Color(0xFF35232B);
+  static const muted = Color(0xFF75616A);
+  static const line = Color(0xFFF0DEE3);
+  static const green = Color(0xFF227257);
+  static const greenPale = Color(0xFFEAF6EF);
+}
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> user;
   final VoidCallback onOpenCalculator;
   final VoidCallback? onOpenMpasi;
+  final VoidCallback? onOpenEducation;
+  final VoidCallback? onOpenProfile;
 
   const HomeScreen({
     super.key,
     required this.user,
     required this.onOpenCalculator,
     this.onOpenMpasi,
+    this.onOpenEducation,
+    this.onOpenProfile,
   });
 
   @override
@@ -19,814 +35,802 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String get _userName {
-    final name = widget.user['name']?.toString().trim();
-
-    if (name == null || name.isEmpty) {
-      return 'Orang Tua';
-    }
-
-    return name;
-  }
-
   static const _children = [
-    _ChildProfile(name: 'Danendra', age: '14 Bulan'),
-    _ChildProfile(name: 'Aluna', age: '8 Bulan'),
+    _ChildProfile(name: 'Danendra', age: '14 bulan'),
+    _ChildProfile(name: 'Aluna', age: '8 bulan'),
   ];
-
   static const _measurements = [
-    _Measurement(date: '12 Okt 2026', weight: '9,8', height: '78'),
-    _Measurement(date: '12 Sep 2026', weight: '9,5', height: '77'),
-    _Measurement(date: '12 Agu 2026', weight: '9,2', height: '76'),
+    _Measurement(date: '12 Oktober 2026', weight: '9,8', height: '78'),
+    _Measurement(date: '12 September 2026', weight: '9,5', height: '77'),
+    _Measurement(date: '12 Agustus 2026', weight: '9,2', height: '76'),
   ];
-
   static const _articles = [
     _EducationArticle(
       category: 'TUMBUH KEMBANG',
       title: 'Pantau pertumbuhan si kecil setiap bulan',
       readTime: '4 menit baca',
       icon: Icons.child_care_rounded,
-      color: Color(0xFFE9A23B),
+      color: _HomeColors.dark,
     ),
     _EducationArticle(
       category: 'GIZI ANAK',
       title: 'Kenali isi piring makan bergizi seimbang',
       readTime: '5 menit baca',
       icon: Icons.favorite_rounded,
-      color: Color(0xFF35A989),
+      color: _HomeColors.green,
     ),
     _EducationArticle(
       category: 'MPASI',
       title: 'Ide menu MPASI lokal yang mudah dibuat',
       readTime: '3 menit baca',
       icon: Icons.restaurant_rounded,
-      color: SG.primary,
+      color: _HomeColors.primary,
     ),
   ];
-
   _ChildProfile _activeChild = _children.first;
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+  String get _userName {
+    final name = widget.user['name']?.toString().trim();
+    return name == null || name.isEmpty ? 'Orang Tua' : name;
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        // HEADER PINK
-        _buildTopBar(),
-
-        // KONTEN BERANDA
-        Padding(
-          padding: const EdgeInsets.fromLTRB(18, 22, 18, 120),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    // MainNavigation already provides the top SafeArea.
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    return ColoredBox(
+      color: _HomeColors.background,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gutter = constraints.maxWidth > 600 ? 32.0 : 20.0;
+          return ListView(
+            key: const PageStorageKey('home-scroll'),
+            padding: EdgeInsets.only(bottom: 120 + bottomInset),
             children: [
-              _buildNutritionStatusCard(),
-
-              const SizedBox(height: 18),
-
-              _buildQuickActions(),
-
-              const SizedBox(height: 27),
-
-              _buildGrowthChartSection(),
-
-              const SizedBox(height: 27),
-
-              _buildMeasurementHistorySection(),
-
-              const SizedBox(height: 27),
-
-              _buildEducationSection(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTopBar() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 26),
-      decoration: const BoxDecoration(
-        color: SG.primary,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // LOGO DAN IDENTITAS APLIKASI
-          Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child: Image.asset(
-                  'assets/images/logo-StuntGuard.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-
-              const SizedBox(width: 11),
-
-              const Expanded(
-                child: Text(
-                  'StuntGuard Jember',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-
-              // PROFIL
-              InkWell(
-                onTap: () {
-                  _showMessage('Menu profil akan tersedia di halaman Profil.');
-                },
-                borderRadius: BorderRadius.circular(24),
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Colors.white.withValues(alpha: 0.16),
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: Colors.white,
-                    size: 23,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 28),
-
-          // SAPAAN ORANG TUA
-          _buildGreeting(),
-
-          const SizedBox(height: 21),
-
-          // PEMILIHAN ANAK
-          _buildChildSelector(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGreeting() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Halo, ${_userName}!',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 27,
-            fontWeight: FontWeight.w800,
-            height: 1.2,
-          ),
-        ),
-
-        const SizedBox(height: 9),
-
-        Text(
-          'Pantau tumbuh kembang ${_activeChild.name} '
-          'dengan penuh kasih.',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.90),
-            fontSize: 13,
-            height: 1.5,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildChildSelector() {
-    return _card(
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: SG.pale,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(Icons.child_care_rounded, color: SG.primary),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ANAK YANG DIPANTAU',
-                  style: TextStyle(
-                    color: SG.muted,
-                    fontSize: 10,
-                    letterSpacing: .5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${_activeChild.name} (${_activeChild.age})',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: SG.ink,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          PopupMenuButton<_ChildProfile>(
-            tooltip: 'Pilih anak',
-            onSelected: (child) => setState(() => _activeChild = child),
-            itemBuilder: (context) => [
-              for (final child in _children)
-                PopupMenuItem(
-                  value: child,
-                  child: Text('${child.name} (${child.age})'),
-                ),
-            ],
-            child: const Padding(
-              padding: EdgeInsets.all(6),
-              child: Icon(Icons.keyboard_arrow_down_rounded, color: SG.primary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNutritionStatusCard() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF4D8E3)),
-        boxShadow: [
-          BoxShadow(
-            color: SG.primary.withValues(alpha: .07),
-            blurRadius: 18,
-            offset: const Offset(0, 7),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Status gizi terakhir',
-                  style: TextStyle(
-                    color: SG.ink,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE7F7F1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle_rounded,
-                      color: Color(0xFF16846E),
-                      size: 14,
-                    ),
-                    SizedBox(width: 5),
-                    Text(
-                      'Gizi Normal',
-                      style: TextStyle(
-                        color: Color(0xFF16846E),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            'Pengukuran contoh • 12 Oktober 2026',
-            style: TextStyle(color: SG.muted, fontSize: 11),
-          ),
-          const SizedBox(height: 19),
-          Row(
-            children: [
-              const Expanded(
-                child: _NutritionMetric(
-                  icon: Icons.monitor_weight_outlined,
-                  label: 'Berat badan',
-                  value: '9,8',
-                  unit: 'kg',
-                ),
-              ),
-              _buildMetricDivider(),
-              const Expanded(
-                child: _NutritionMetric(
-                  icon: Icons.straighten_rounded,
-                  label: 'Tinggi badan',
-                  value: '78',
-                  unit: 'cm',
-                ),
-              ),
-              _buildMetricDivider(),
-              const Expanded(
-                child: _NutritionMetric(
-                  icon: Icons.airline_seat_flat_rounded,
-                  label: 'Posisi ukur',
-                  value: 'Terlentang',
-                  unit: '',
-                  compact: true,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 17),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(11),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF7FA),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.info_outline_rounded, color: SG.primary, size: 17),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Data ilustrasi untuk pratinjau. Hasil skrining bukan diagnosis medis.',
-                    style: TextStyle(
-                      color: SG.muted,
-                      fontSize: 10,
-                      height: 1.4,
+              _buildHeader(gutter),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(gutter, 24, gutter, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildChildSelector(),
+                        const SizedBox(height: 20),
+                        _buildNutritionCard(),
+                        const SizedBox(height: 28),
+                        _sectionTitle(
+                          'Untuk si kecil',
+                          'Langkah kecil, manfaat besar.',
+                        ),
+                        const SizedBox(height: 12),
+                        _buildQuickActions(),
+                        const SizedBox(height: 28),
+                        _buildGrowthChart(),
+                        const SizedBox(height: 28),
+                        _buildHistory(),
+                        const SizedBox(height: 28),
+                        _buildEducation(),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildMetricDivider() => Container(
-    height: 44,
-    width: 1,
-    margin: const EdgeInsets.symmetric(horizontal: 7),
-    color: SG.line,
-  );
-
-  Widget _buildQuickActions() {
-    return Row(
-      children: [
-        Expanded(
-          child: FilledButton.icon(
-            onPressed: widget.onOpenCalculator,
-            icon: const Icon(Icons.calculate_outlined, size: 18),
-            label: const Text('Cek Gizi WHO'),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              textStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed:
-                widget.onOpenMpasi ??
-                () => _showMessage('Halaman Resep MPASI belum tersedia.'),
-            icon: const Icon(Icons.restaurant_menu_rounded, size: 18),
-            label: const Text('Resep MPASI'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: SG.primary,
-              side: const BorderSide(color: SG.primary),
-              minimumSize: const Size.fromHeight(50),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              textStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGrowthChartSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(
-          title: 'Grafik Pertumbuhan',
-          subtitle: 'Z-Score WHO • Tinggi badan menurut umur',
-          trailing: 'ILUSTRASI',
-        ),
-        const SizedBox(height: 12),
-        _card(
-          padding: const EdgeInsets.fromLTRB(15, 15, 15, 13),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  _ChartLegend(color: SG.primary, label: 'Danendra'),
-                  SizedBox(width: 16),
-                  _ChartLegend(
-                    color: Color(0xFFCBD5E1),
-                    label: 'Referensi WHO',
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
-              SizedBox(
-                height: 150,
-                width: double.infinity,
-                child: CustomPaint(
-                  painter: _GrowthChartPainter(),
-                  child: const SizedBox.expand(),
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('10 bln', style: _chartLabelStyle),
-                  Text('11 bln', style: _chartLabelStyle),
-                  Text('12 bln', style: _chartLabelStyle),
-                  Text('13 bln', style: _chartLabelStyle),
-                  Text('14 bln', style: _chartLabelStyle),
-                ],
-              ),
-              const SizedBox(height: 13),
-              const Divider(height: 1, color: SG.line),
-              const SizedBox(height: 11),
-              const Text(
-                'Grafik dan titik pengukuran adalah data contoh. Penilaian pertumbuhan perlu menggunakan standar WHO dan data anak yang tervalidasi.',
-                style: TextStyle(color: SG.muted, fontSize: 10, height: 1.4),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMeasurementHistorySection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(
-          title: 'Riwayat Pengukuran',
-          subtitle: 'Catatan BB dan tinggi badan',
-          trailing: '3 DATA',
-        ),
-        const SizedBox(height: 12),
-        _card(
-          padding: const EdgeInsets.fromLTRB(14, 3, 14, 3),
-          child: Column(
-            children: [
-              for (var index = 0; index < _measurements.length; index++) ...[
-                _buildMeasurementRow(
-                  _measurements[index],
-                  isLatest: index == 0,
-                ),
-                if (index != _measurements.length - 1)
-                  const Divider(height: 1, color: SG.line),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMeasurementRow(
-    _Measurement measurement, {
-    required bool isLatest,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: isLatest ? SG.pale : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.monitor_weight_outlined,
-              color: isLatest ? SG.primary : SG.muted,
-              size: 19,
-            ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  measurement.date,
-                  style: const TextStyle(
-                    color: SG.ink,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${measurement.weight} kg  •  ${measurement.height} cm',
-                  style: const TextStyle(color: SG.muted, fontSize: 11),
-                ),
-              ],
-            ),
-          ),
-          if (isLatest)
-            const Text(
-              'Terbaru',
-              style: TextStyle(
-                color: SG.primary,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEducationSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(
-          title: 'Edukasi & MPASI',
-          subtitle: 'Informasi kesehatan untuk keluarga',
-          trailing: 'LIHAT SEMUA',
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 174,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: _articles.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 11),
-            itemBuilder: (context, index) =>
-                _buildEducationCard(_articles[index]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEducationCard(_EducationArticle article) {
-    return SizedBox(
-      width: 220,
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () =>
-              _showMessage('Artikel akan dibuka setelah konten tersedia.'),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: SG.line),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildHeader(double gutter) => Container(
+    padding: EdgeInsets.fromLTRB(gutter, 20, gutter, 28),
+    decoration: const BoxDecoration(
+      color: _HomeColors.dark,
+      borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+    ),
+    child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 680),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
                 Container(
-                  width: 39,
-                  height: 39,
+                  width: 44,
+                  height: 44,
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: article.color.withValues(alpha: .11),
-                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(article.icon, color: article.color, size: 20),
-                ),
-                const Spacer(),
-                Text(
-                  article.category,
-                  style: const TextStyle(
-                    color: SG.primary,
-                    fontSize: 9,
-                    letterSpacing: .35,
-                    fontWeight: FontWeight.w800,
+                  child: Image.asset(
+                    'assets/images/logo-StuntGuard.png',
+                    fit: BoxFit.contain,
+                    excludeFromSemantics: true,
                   ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  article.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: SG.ink,
-                    fontSize: 12,
-                    height: 1.3,
-                    fontWeight: FontWeight.w700,
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Stunt',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            TextSpan(
+                              text: 'Guard',
+                              style: TextStyle(color: _HomeColors.yellow),
+                            ),
+                          ],
+                        ),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -.5,
+                        ),
+                      ),
+                      Text(
+                        'JEMBER',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          letterSpacing: 2,
+                          height: 1.6,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 7),
-                Text(
-                  article.readTime,
-                  style: const TextStyle(color: SG.muted, fontSize: 10),
+                IconButton.filledTonal(
+                  onPressed: widget.onOpenProfile,
+                  tooltip: 'Buka profil',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: .15),
+                    foregroundColor: Colors.white,
+                    disabledForegroundColor: Colors.white60,
+                    minimumSize: const Size(48, 48),
+                  ),
+                  icon: const Icon(Icons.person_outline_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+            Text(
+              'Halo, $_userName!',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 25,
+                height: 1.25,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Temani setiap langkah\ntumbuh kembang si kecil.',
+              style: TextStyle(color: Colors.white, fontSize: 15, height: 1.5),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: _HomeColors.yellow,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.favorite_border_rounded,
+                    color: _HomeColors.dark,
+                    size: 16,
+                  ),
+                  SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Tumbuh sehat, bersama StuntGuard',
+                      style: TextStyle(
+                        color: _HomeColors.dark,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _buildChildSelector() => _card(
+    padding: EdgeInsets.zero,
+    child: PopupMenuButton<_ChildProfile>(
+      tooltip: 'Pilih anak contoh',
+      initialValue: _activeChild,
+      onSelected: (child) => setState(() => _activeChild = child),
+      itemBuilder: (_) => [
+        for (final child in _children)
+          PopupMenuItem(
+            value: child,
+            child: Text('${child.name} • ${child.age}'),
+          ),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            _iconTile(
+              Icons.child_care_rounded,
+              _HomeColors.primary,
+              _HomeColors.pale,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'ANAK YANG DIPANTAU • CONTOH',
+                    style: TextStyle(
+                      color: _HomeColors.muted,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: .6,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    _activeChild.name,
+                    style: const TextStyle(
+                      color: _HomeColors.ink,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    _activeChild.age,
+                    style: const TextStyle(
+                      color: _HomeColors.muted,
+                      fontSize: 12,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.unfold_more_rounded, color: _HomeColors.primary),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _buildNutritionCard() => _card(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              'Ringkasan pertumbuhan',
+              style: TextStyle(
+                color: _HomeColors.ink,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            _Badge(
+              label: 'Data contoh',
+              color: _HomeColors.dark,
+              background: _HomeColors.pale,
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Pengukuran • 12 Oktober 2026',
+          style: TextStyle(color: _HomeColors.muted, fontSize: 12),
+        ),
+        const SizedBox(height: 20),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final stacked =
+                constraints.maxWidth < 280 ||
+                MediaQuery.textScalerOf(context).scale(14) > 20;
+            final metrics = [
+              _metric(
+                'Berat badan',
+                '9,8',
+                'kg',
+                Icons.monitor_weight_outlined,
+              ),
+              _metric('Tinggi badan', '78', 'cm', Icons.straighten_rounded),
+            ];
+            return stacked
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      metrics[0],
+                      const SizedBox(height: 12),
+                      metrics[1],
+                    ],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: metrics[0]),
+                      const SizedBox(width: 12),
+                      Expanded(child: metrics[1]),
+                    ],
+                  );
+          },
+        ),
+        const SizedBox(height: 16),
+        const Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _Badge(
+              label: 'Gizi normal • contoh',
+              color: _HomeColors.green,
+              background: _HomeColors.greenPale,
+              icon: Icons.check_circle_outline_rounded,
+            ),
+            Text(
+              'Posisi ukur: terlentang',
+              style: TextStyle(color: _HomeColors.muted, fontSize: 12),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        const Divider(height: 1, color: _HomeColors.line),
+        const SizedBox(height: 12),
+        const Text(
+          'Data ilustrasi, belum terhubung ke data anak. Hasil skrining bukan diagnosis medis.',
+          style: TextStyle(color: _HomeColors.muted, fontSize: 12, height: 1.5),
+        ),
+      ],
+    ),
+  );
+
+  Widget _metric(String label, String value, String unit, IconData icon) =>
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _HomeColors.background,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: _HomeColors.primary, size: 22),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: const TextStyle(color: _HomeColors.muted, fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: value,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' $unit',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
+              style: const TextStyle(color: _HomeColors.ink),
+            ),
+          ],
+        ),
+      );
+
+  Widget _buildQuickActions() => LayoutBuilder(
+    builder: (context, constraints) {
+      final width =
+          constraints.maxWidth < 300 ||
+              MediaQuery.textScalerOf(context).scale(14) > 20
+          ? constraints.maxWidth
+          : (constraints.maxWidth - 12) / 2;
+      return Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          SizedBox(
+            width: width,
+            child: _action(
+              title: 'Kalkulator gizi',
+              subtitle: 'Cek gizi dengan WHO',
+              icon: Icons.calculate_outlined,
+              filled: true,
+              onTap: widget.onOpenCalculator,
+            ),
+          ),
+          SizedBox(
+            width: width,
+            child: _action(
+              title: 'Resep MPASI',
+              subtitle: 'Ide menu untuk si kecil',
+              icon: Icons.ramen_dining_rounded,
+              filled: false,
+              onTap: widget.onOpenMpasi,
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  Widget _action({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool filled,
+    VoidCallback? onTap,
+  }) => Material(
+    color: filled ? _HomeColors.primary : Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20),
+      side: BorderSide(color: filled ? _HomeColors.primary : _HomeColors.line),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: filled ? _HomeColors.yellow : _HomeColors.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: TextStyle(
+                color: filled ? Colors.white : _HomeColors.ink,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: filled ? Colors.white : _HomeColors.muted,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _buildGrowthChart() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _sectionTitle(
+        'Grafik pertumbuhan',
+        'Gambaran perjalanan tumbuh si kecil.',
+      ),
+      const SizedBox(height: 12),
+      _card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _Badge(
+              label: 'Ilustrasi grafik',
+              color: _HomeColors.dark,
+              background: _HomeColors.pale,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Contoh tren pengukuran',
+              style: TextStyle(
+                color: _HomeColors.ink,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Garis merah: contoh anak • Abu-abu: pembanding ilustratif',
+              style: TextStyle(
+                color: _HomeColors.muted,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Semantics(
+              image: true,
+              label: 'Grafik ilustrasi lima titik. Bukan hasil pengukuran atau kurva WHO tervalidasi.',
+              child: SizedBox(
+                height: 140,
+                width: double.infinity,
+                child: CustomPaint(painter: _GrowthChartPainter()),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('1', style: _chartLabelStyle),
+                Text('2', style: _chartLabelStyle),
+                Text('3', style: _chartLabelStyle),
+                Text('4', style: _chartLabelStyle),
+                Text('5', style: _chartLabelStyle),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text('Urutan pengukuran contoh', style: _chartLabelStyle),
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: _HomeColors.line),
+            const SizedBox(height: 12),
+            const Text(
+              'Grafik ini belum menggunakan data anak atau kurva WHO tervalidasi.',
+              style: TextStyle(
+                color: _HomeColors.muted,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+
+  Widget _buildHistory() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _sectionTitle('Riwayat pengukuran', '3 catatan contoh • belum data anak'),
+      const SizedBox(height: 12),
+      _card(
+        child: Column(
+          children: [
+            for (var i = 0; i < _measurements.length; i++) ...[
+              if (i > 0) const Divider(height: 32, color: _HomeColors.line),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _iconTile(
+                    Icons.event_note_rounded,
+                    _HomeColors.primary,
+                    _HomeColors.pale,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _measurements[i].date,
+                          style: const TextStyle(
+                            color: _HomeColors.ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${_measurements[i].weight} kg  •  ${_measurements[i].height} cm',
+                          style: const TextStyle(
+                            color: _HomeColors.muted,
+                            fontSize: 13,
+                          ),
+                        ),
+                        if (i == 0)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 6),
+                            child: Text(
+                              'Terbaru',
+                              style: TextStyle(
+                                color: _HomeColors.primary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    ],
+  );
+
+  Widget _buildEducation() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _sectionTitle(
+        'Bekal untuk orang tua',
+        'Inspirasi merawat si kecil setiap hari.',
+      ),
+      if (widget.onOpenEducation != null)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: widget.onOpenEducation,
+            style: TextButton.styleFrom(
+              foregroundColor: _HomeColors.primary,
+              minimumSize: const Size(48, 48),
+            ),
+            child: const Text('Buka edukasi →'),
+          ),
+        ),
+      const SizedBox(height: 12),
+      for (final article in _articles)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _card(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _iconTile(
+                  article.icon,
+                  article.color,
+                  article.color.withValues(alpha: .08),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        article.category,
+                        style: TextStyle(
+                          color: article.color,
+                          fontSize: 10,
+                          letterSpacing: .6,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        article.title,
+                        style: const TextStyle(
+                          color: _HomeColors.ink,
+                          fontSize: 15,
+                          height: 1.4,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${article.readTime} • Contoh artikel',
+                        style: const TextStyle(
+                          color: _HomeColors.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
+    ],
+  );
 
-  Widget _buildSectionHeader({
-    required String title,
-    required String subtitle,
-    required String trailing,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: SG.ink,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                subtitle,
-                style: const TextStyle(color: SG.muted, fontSize: 11),
-              ),
-            ],
-          ),
+  Widget _sectionTitle(String title, String subtitle) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        title,
+        style: const TextStyle(
+          color: _HomeColors.ink,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -.4,
         ),
-        Text(
-          trailing,
-          style: const TextStyle(
-            color: SG.primary,
-            fontSize: 9,
-            fontWeight: FontWeight.w800,
-          ),
+      ),
+      const SizedBox(height: 6),
+      Text(
+        subtitle,
+        style: const TextStyle(
+          color: _HomeColors.muted,
+          fontSize: 13,
+          height: 1.5,
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+
+  Widget _iconTile(IconData icon, Color color, Color background) =>
+      ExcludeSemantics(
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+      );
 
   Widget _card({
     required Widget child,
-    EdgeInsets padding = const EdgeInsets.all(15),
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: SG.line),
-        boxShadow: [
-          BoxShadow(
-            color: SG.ink.withValues(alpha: .025),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
+    EdgeInsets padding = const EdgeInsets.all(20),
+  }) => Container(
+    padding: padding,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: _HomeColors.line),
+    ),
+    child: child,
+  );
 }
 
-class _NutritionMetric extends StatelessWidget {
-  final IconData icon;
+class _Badge extends StatelessWidget {
   final String label;
-  final String value;
-  final String unit;
-  final bool compact;
-
-  const _NutritionMetric({
-    required this.icon,
+  final Color color;
+  final Color background;
+  final IconData? icon;
+  const _Badge({
     required this.label,
-    required this.value,
-    required this.unit,
-    this.compact = false,
+    required this.color,
+    required this.background,
+    this.icon,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+    decoration: BoxDecoration(
+      color: background,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 17, color: SG.primary),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: SG.muted, fontSize: 9),
-        ),
-        const SizedBox(height: 4),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: value,
-                  style: TextStyle(
-                    color: SG.ink,
-                    fontSize: compact ? 11 : 19,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                if (unit.isNotEmpty)
-                  TextSpan(
-                    text: ' $unit',
-                    style: const TextStyle(color: SG.muted, fontSize: 10),
-                  ),
-              ],
+        if (icon != null) ...[
+          ExcludeSemantics(child: Icon(icon, color: color, size: 16)),
+          const SizedBox(width: 6),
+        ],
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ChartLegend extends StatelessWidget {
-  final Color color;
-  final String label;
-
-  const _ChartLegend({required this.color, required this.label});
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Container(
-        width: 8,
-        height: 8,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      ),
-      const SizedBox(width: 6),
-      Text(label, style: const TextStyle(color: SG.muted, fontSize: 10)),
-    ],
+    ),
   );
 }
 
@@ -869,13 +873,13 @@ class _GrowthChartPainter extends CustomPainter {
       canvas.drawPath(path, referencePaint);
     }
 
-    const zScores = [.48, .46, .52, .49, .45];
+    const samplePoints = [.48, .46, .52, .49, .45];
     final growthPath = Path();
     final points = <Offset>[];
-    for (var index = 0; index < zScores.length; index++) {
+    for (var index = 0; index < samplePoints.length; index++) {
       final point = Offset(
-        horizontalInset + chartWidth * index / (zScores.length - 1),
-        verticalInset + chartHeight * zScores[index],
+        horizontalInset + chartWidth * index / (samplePoints.length - 1),
+        verticalInset + chartHeight * samplePoints[index],
       );
       points.add(point);
       if (index == 0) {
@@ -888,7 +892,7 @@ class _GrowthChartPainter extends CustomPainter {
     canvas.drawPath(
       growthPath,
       Paint()
-        ..color = SG.primary
+        ..color = _HomeColors.primary
         ..strokeWidth = 2.5
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
@@ -896,7 +900,7 @@ class _GrowthChartPainter extends CustomPainter {
     );
     for (final point in points) {
       canvas.drawCircle(point, 4, Paint()..color = Colors.white);
-      canvas.drawCircle(point, 3, Paint()..color = SG.primary);
+      canvas.drawCircle(point, 3, Paint()..color = _HomeColors.primary);
     }
   }
 
@@ -939,4 +943,4 @@ class _EducationArticle {
   });
 }
 
-const _chartLabelStyle = TextStyle(color: SG.muted, fontSize: 9);
+const _chartLabelStyle = TextStyle(color: _HomeColors.muted, fontSize: 12);
