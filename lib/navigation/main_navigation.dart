@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
-import '../screens/welcome_screen.dart';
+import '../screens/login_screen.dart';
 import '../theme/sg_theme.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/calculator/calculator_screen.dart';
@@ -33,7 +33,7 @@ class _MainNavigationState extends State<MainNavigation> {
       if (!mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
         (route) => false,
       );
     } catch (e) {

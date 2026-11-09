@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import '../navigation/main_navigation.dart';
 import '../services/auth_service.dart';
 import '../theme/sg_theme.dart';
-import 'welcome_screen.dart';
+import 'login_screen.dart';
 
 class AuthGate extends StatefulWidget {
-  const AuthGate({super.key});
+  const AuthGate({super.key, this.sessionFuture});
+
+  final Future<Map<String, dynamic>?>? sessionFuture;
 
   @override
   State<AuthGate> createState() => _AuthGateState();
@@ -20,7 +22,7 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void initState() {
     super.initState();
-    _session = _authService.restoreSession();
+    _session = widget.sessionFuture ?? _authService.restoreSession();
   }
 
   void _retry() {
@@ -115,7 +117,7 @@ class _AuthGateState extends State<AuthGate> {
         final user = snapshot.data;
 
         if (user == null) {
-          return const WelcomeScreen();
+          return const LoginScreen();
         }
 
         return MainNavigation(user: user);

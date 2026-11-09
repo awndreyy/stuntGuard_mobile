@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/auth_gate.dart';
+import 'screens/splash_screen.dart';
 import 'theme/sg_theme.dart';
 
 void main() {
@@ -17,7 +17,7 @@ class StunGuardApp extends StatelessWidget {
       title: 'StuntGuard Jember',
       debugShowCheckedModeBanner: false,
       theme: SgTheme.lightTheme,
-      home: const AuthGate(),
+      home: const SplashScreen(),
     );
   }
 }

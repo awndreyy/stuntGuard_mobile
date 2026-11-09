@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text(
-                              'StunGuard',
+                              'StuntGuard',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 24,
@@ -447,7 +447,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Copyright
                         const Center(
                           child: Text(
-                            '© 2026 StunGuard Jember. Made by kelompok 2',
+                            '© 2026 StuntGuard Jember. Made by kelompok 2',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 10,

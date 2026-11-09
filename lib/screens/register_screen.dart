@@ -583,29 +583,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: Wrap(
                             alignment: WrapAlignment.center,
                             children: [
-                              const Text(
-                                'Sudah memiliki akun? ',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const LoginScreen(),
-                                    ),
-                                  );
+                              TextButton.icon(
+                                onPressed: () {
+                                  Navigator.pop(context);
                                 },
-                                child: const Text(
-                                  'Masuk di sini',
+                                icon: const Icon(
+                                  Icons.arrow_back_rounded,
+                                  size: 20,
+                                ),
+                                label: const Text(
+                                  'Kembali ke Login',
                                   style: TextStyle(
-                                    color: Color(0xFFBD0D3A),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
                                   ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .primary,
                                 ),
                               ),
                             ],
