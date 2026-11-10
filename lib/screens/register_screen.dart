@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:stuntguardmobile/screens/login_screen.dart';
+import '../theme/sg_theme.dart';
 import '../services/auth_service.dart';
 
-const Color primaryCrimson = Color(0xFFB5103C);
-const Color darkCrimson = Color(0xFF6B0720);
+const Color primaryCrimson = SG.primary;
+const Color darkCrimson = SG.primaryDark;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -56,10 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SnackBar(content: Text('Registrasi berhasil! Silakan login.')),
         );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
+        Navigator.pop(context);
       } catch (e) {
         if (!mounted) return;
 
@@ -105,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF880A28),
+      backgroundColor: SG.primaryDark,
       body: Stack(
         children: [
           // Background Gradient and Header
@@ -118,9 +115,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFF7A0722),
-                    Color(0xFFA50E36),
-                    Color(0xFF880A28),
+                    SG.primaryDark,
+                    SG.primary,
+                    SG.primaryDark,
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -314,7 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             width: 38,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFDCE2EC),
+                              color: SG.line,
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
@@ -328,7 +325,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: SG.ink,
                             ),
                           ),
                         ),
@@ -341,7 +338,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF64748B),
+                              color: SG.muted,
                               height: 1.4,
                             ),
                           ),
@@ -380,14 +377,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
+                                color: SG.soft,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
                                 '$_nikLength/16 Digit',
                                 style: const TextStyle(
                                   fontSize: 10,
-                                  color: Color(0xFF64748B),
+                                  color: SG.muted,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -418,7 +415,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           'Harus berupa 16 digit angka sesuai KTP',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF94A3B8),
+                            color: SG.muted,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -467,7 +464,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     _obscurePassword
                                         ? Icons.visibility_outlined
                                         : Icons.visibility_off_outlined,
-                                    color: const Color(0xFF64748B),
+                                    color: SG.muted,
                                     size: 20,
                                   ),
                                 ),
@@ -487,7 +484,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           'Gunakan minimal 6 karakter',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF94A3B8),
+                            color: SG.muted,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -501,12 +498,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               height: 24,
                               child: Checkbox(
                                 value: _setuju,
-                                activeColor: const Color(0xFFBD0D3A),
+                                activeColor: SG.primary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 side: const BorderSide(
-                                  color: Color(0xFFCBD5E1),
+                                  color: SG.line,
                                   width: 1.5,
                                 ),
                                 onChanged: (value) {
@@ -523,7 +520,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     height: 1.45,
-                                    color: Color(0xFF64748B),
+                                    color: SG.muted,
                                   ),
                                   children: [
                                     TextSpan(
@@ -532,7 +529,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     TextSpan(
                                       text: 'StunGuard.',
                                       style: TextStyle(
-                                        color: Color(0xFFBD0D3A),
+                                        color: SG.primary,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -551,10 +548,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _register,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFBD0D3A),
+                              backgroundColor: SG.primary,
                               foregroundColor: Colors.white,
                               elevation: 4,
-                              shadowColor: const Color(0xFFBD0D3A)
+                              shadowColor: SG.primary
                                   .withValues(alpha: 0.4),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -578,33 +575,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 18),
 
-                        // 7. Back to Login Link
+                        // Kembali ke halaman Login tanpa menambah route baru.
                         Center(
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            children: [
-                              TextButton.icon(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                icon: const Icon(
-                                  Icons.arrow_back_rounded,
-                                  size: 20,
-                                ),
-                                label: const Text(
-                                  'Kembali ke Login',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .primary,
-                                ),
-                              ),
-                            ],
+                          child: TextButton.icon(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.arrow_back_rounded, size: 20),
+                            label: const Text('Kembali ke Login'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: SG.primary,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 50),
@@ -616,7 +595,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF94A3B8),
+                              color: SG.muted,
                             ),
                           ),
                         ),
@@ -654,7 +633,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Text.rich(
       TextSpan(
         style: const TextStyle(
-          color: Color(0xFF334155),
+          color: SG.ink,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -663,7 +642,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const TextSpan(
             text: ' *',
             style: TextStyle(
-              color: Color(0xFFBD0D3A),
+              color: SG.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -678,10 +657,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-      prefixIcon: Icon(prefixIcon, size: 19, color: const Color(0xFF94A3B8)),
+      hintStyle: const TextStyle(color: SG.muted, fontSize: 12),
+      prefixIcon: Icon(prefixIcon, size: 19, color: SG.muted),
       filled: true,
-      fillColor: const Color(0xFFF3F6FA),
+      fillColor: SG.soft,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
@@ -693,7 +672,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: const BorderSide(color: Color(0xFFBD0D3A), width: 1.5),
+        borderSide: const BorderSide(color: SG.primary, width: 1.5),
       ),
     );
   }

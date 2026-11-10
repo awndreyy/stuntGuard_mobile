@@ -170,7 +170,7 @@ class _MpasiScreenState extends State<MpasiScreen> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 900),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -335,40 +335,41 @@ class _MpasiScreenState extends State<MpasiScreen> {
     );
   }
 
-  Widget _buildHeader() => ClipPath(
+Widget _buildHeader() => ClipPath(
     clipper: _HeaderWaveClipper(),
     child: Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 44),
+      width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF922447), Color(0xFFB90F42), _RecipeColors.primary],
+          colors: [Color(0xFF9F1D47), Color(0xFFCB2458), Color(0xFFE84D78)],
         ),
       ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 860),
+      child: SafeArea(
+        top: false,
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // LOGO DAN NAMA APLIKASI
               Row(
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 42,
+                    height: 42,
                     padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(13),
                     ),
                     child: Image.asset(
                       'assets/images/logo-StuntGuard.png',
                       fit: BoxFit.contain,
-                      excludeFromSemantics: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,72 +378,123 @@ class _MpasiScreenState extends State<MpasiScreen> {
                           'StuntGuard',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            letterSpacing: -.5,
                           ),
                         ),
-                        SizedBox(height: 3),
                         Text(
                           'Jember Bebas Stunting',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            height: 1.5,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 11),
                         ),
                       ],
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+                      horizontal: 14,
+                      vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .18),
-                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFFFFD1DD),
+                      borderRadius: BorderRadius.circular(24),
                     ),
                     child: const Text(
                       'MPASI',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFF881438),
                         fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
-              const Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'MPASI Sehat, ',
-                      style: TextStyle(color: Colors.white),
+
+              const SizedBox(height: 18),
+
+              // JUDUL DAN ANIMASI BAYI
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final narrow = constraints.maxWidth < 340;
+                  final babyWidth = narrow ? 116.0 : 155.0;
+
+                  return SizedBox(
+                    height: narrow ? 160 : 180,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          right: babyWidth - 12,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'MPASI Sehat,',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: narrow ? 20 : 23,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.15,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Transform.rotate(
+                                angle: -0.035,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFD66B),
+                                    borderRadius: BorderRadius.circular(22),
+                                  ),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Si Kecil Lahap!',
+                                      style: TextStyle(
+                                        color: const Color(0xFF851735),
+                                        fontSize: narrow ? 17 : 21,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Temukan menu bergizi sesuai usia '
+                                'untuk dukung tumbuh kembang optimal si kecil.',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: narrow ? 10 : 11,
+                                  height: 1.45,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // ANIMASI BAYI DI KANAN
+                        Positioned(
+                          right: -8,
+                          bottom: -12,
+                          child: Image.asset(
+                            'assets/animations/bayi_mpasi.gif',
+                            width: babyWidth,
+                            height: narrow ? 145 : 178,
+                            fit: BoxFit.contain,
+                            gaplessPlayback: true,
+                          ),
+                        ),
+                      ],
                     ),
-                    TextSpan(
-                      text: 'Si Kecil Lahap!',
-                      style: TextStyle(color: _RecipeColors.yellow),
-                    ),
-                  ],
-                ),
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  height: 1.2,
-                  letterSpacing: -.8,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Temukan menu bergizi sesuai usia untuk dukung tumbuh kembang optimal si kecil.',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  height: 1.6,
-                ),
+                  );
+                },
               ),
             ],
           ),
@@ -451,47 +503,68 @@ class _MpasiScreenState extends State<MpasiScreen> {
     ),
   );
 
-  Widget _buildSearch() => TextField(
-    controller: _searchController,
-    onChanged: (_) => _scheduleSearch(),
-    onSubmitted: (_) {
-      _searchDebounce?.cancel();
-      _loadRecipes();
-    },
-    maxLength: 100,
-    textInputAction: TextInputAction.search,
-    style: const TextStyle(color: _RecipeColors.ink, fontSize: 14),
-    decoration: InputDecoration(
-      counterText: '',
-      hintText: 'Cari resep MPASI...',
-      hintStyle: const TextStyle(color: _RecipeColors.muted, fontSize: 14),
-      prefixIcon: const Icon(
-        Icons.search_rounded,
-        color: _RecipeColors.primary,
+Widget _buildSearch() => Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(30),
+      boxShadow: [
+        BoxShadow(
+          color: const Color(0xFFB72859).withValues(alpha: 0.12),
+          blurRadius: 20,
+          offset: const Offset(0, 7),
+        ),
+      ],
+    ),
+    child: TextField(
+      controller: _searchController,
+      onChanged: (_) => _scheduleSearch(),
+      onSubmitted: (_) {
+        _searchDebounce?.cancel();
+        _loadRecipes();
+      },
+      maxLength: 100,
+      textInputAction: TextInputAction.search,
+      style: const TextStyle(color: Color(0xFF4B2634), fontSize: 14),
+      decoration: InputDecoration(
+        counterText: '',
+        hintText: 'Cari resep MPASI...',
+        hintStyle: const TextStyle(color: Color(0xFF93747F), fontSize: 14),
+        prefixIcon: const Icon(
+          Icons.search_rounded,
+          color: Color(0xFFE0004D),
+          size: 25,
+        ),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 50,
+          minHeight: 48,
+        ),
+        suffixIcon: _searchController.text.isEmpty
+            ? null
+            : IconButton(
+                tooltip: 'Hapus pencarian',
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () {
+                  _searchController.clear();
+                  _searchDebounce?.cancel();
+                  _loadRecipes();
+                },
+              ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 16,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: Color(0xFFFFB3CA), width: 1.2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: Color(0xFFE0004D), width: 1.8),
+        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
       ),
-      suffixIcon: _searchController.text.isEmpty
-          ? null
-          : IconButton(
-              tooltip: 'Hapus pencarian',
-              icon: const Icon(Icons.close_rounded, color: _RecipeColors.muted),
-              onPressed: () {
-                _searchController.clear();
-                _searchDebounce?.cancel();
-                _loadRecipes();
-              },
-            ),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 19),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: _RecipeColors.line),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: _RecipeColors.primary, width: 2),
-      ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
     ),
   );
 

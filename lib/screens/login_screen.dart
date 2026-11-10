@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../theme/sg_theme.dart';
 import 'register_screen.dart';
 import '../navigation/main_navigation.dart';
 import '../services/auth_service.dart';
 
-const Color primaryCrimson = Color(0xFFB5103C);
-const Color darkCrimson = Color(0xFF6B0720);
+const Color primaryCrimson = SG.primary;
+const Color darkCrimson = SG.primaryDark;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -78,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF880A28),
+      backgroundColor: SG.primaryDark,
       body: Stack(
         children: [
           // Background Gradient and Ornaments
@@ -91,9 +92,9 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFF7A0722),
-                    Color(0xFFA50E36),
-                    Color(0xFF880A28),
+                    SG.primaryDark,
+                    SG.primary,
+                    SG.primaryDark,
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -206,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text(
-                              'StuntGuard',
+                              'StunGuard',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 24,
@@ -285,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 38,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFDCE2EC),
+                              color: SG.line,
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
@@ -299,7 +300,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: SG.ink,
                             ),
                           ),
                         ),
@@ -312,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF64748B),
+                              color: SG.muted,
                             ),
                           ),
                         ),
@@ -359,7 +360,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _obscurePassword
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: const Color(0xFF64748B),
+                                color: SG.muted,
                                 size: 20,
                               ),
                             ),
@@ -383,10 +384,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _login,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFBD0D3A),
+                              backgroundColor: SG.primary,
                               foregroundColor: Colors.white,
                               elevation: 4,
-                              shadowColor: const Color(0xFFBD0D3A).withValues(alpha: 0.4),
+                              shadowColor: SG.primary.withValues(alpha: 0.4),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -417,7 +418,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               const Text(
                                 'Belum punya akun? ',
                                 style: TextStyle(
-                                  color: Color(0xFF64748B),
+                                  color: SG.muted,
                                   fontSize: 13,
                                 ),
                               ),
@@ -433,7 +434,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: const Text(
                                   'Daftar di sini',
                                   style: TextStyle(
-                                    color: Color(0xFFBD0D3A),
+                                    color: SG.primary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                   ),
@@ -447,11 +448,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Copyright
                         const Center(
                           child: Text(
-                            '© 2026 StuntGuard Jember. Made by kelompok 2',
+                            '© 2026 StunGuard Jember. Made by kelompok 2',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF94A3B8),
+                              color: SG.muted,
                             ),
                           ),
                         ),
@@ -493,7 +494,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Text(
       text,
       style: const TextStyle(
-        color: Color(0xFF334155),
+        color: SG.ink,
         fontSize: 13,
         fontWeight: FontWeight.w600,
       ),
@@ -504,11 +505,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(
-        color: Color(0xFF94A3B8),
+        color: SG.muted,
         fontSize: 13,
       ),
       filled: true,
-      fillColor: const Color(0xFFF3F6FA),
+      fillColor: SG.soft,
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -520,7 +521,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFBD0D3A), width: 1.5),
+        borderSide: const BorderSide(color: SG.primary, width: 1.5),
       ),
     );
   }
