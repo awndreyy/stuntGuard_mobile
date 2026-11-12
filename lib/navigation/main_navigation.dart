@@ -65,6 +65,7 @@ class _MainNavigationState extends State<MainNavigation> {
     final pages = [
       HomeScreen(
         user: widget.user,
+        isActive: selected == 0,
         onOpenCalculator: openCalculator,
         onOpenMpasi: openMpasi,
         onOpenEducation: () => _selectTab(3),

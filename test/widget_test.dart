@@ -7,39 +7,212 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:stuntguardmobile/main.dart';
+import 'package:stuntguardmobile/models/balita.dart';
+import 'package:stuntguardmobile/models/informasi.dart';
+import 'package:stuntguardmobile/models/pengukuran.dart';
 import 'package:stuntguardmobile/screens/home/home_screen.dart';
+import 'package:stuntguardmobile/services/balita_service.dart';
+import 'package:stuntguardmobile/services/informasi_service.dart';
+import 'package:stuntguardmobile/services/pengukuran_service.dart';
+
+class _FakeBalitaService extends BalitaService {
+  @override
+  Future<List<Balita>> fetchChildren() async {
+    return const [
+      Balita(
+        id: '1',
+        nama: 'Danendra',
+        nik: null,
+        tanggalLahir: '2025-01-01',
+        jenisKelamin: 'Laki-laki',
+        jumlahPengukuran: 2,
+      ),
+      Balita(
+        id: '2',
+        nama: 'Aluna',
+        nik: null,
+        tanggalLahir: '2025-04-01',
+        jenisKelamin: 'Perempuan',
+        jumlahPengukuran: 1,
+      ),
+    ];
+  }
+}
+
+class _RefreshableBalitaService extends BalitaService {
+  int fetchCount = 0;
+
+  @override
+  Future<List<Balita>> fetchChildren() async {
+    fetchCount++;
+    if (fetchCount == 1) return const [];
+
+    return const [
+      Balita(
+        id: '3',
+        nama: 'Bayi Baru',
+        nik: null,
+        tanggalLahir: '2026-01-01',
+        jenisKelamin: 'Laki-laki',
+        jumlahPengukuran: 0,
+      ),
+    ];
+  }
+}
+
+class _FakePengukuranService extends PengukuranService {
+  @override
+  Future<List<Pengukuran>> fetchByChild(String childId) async {
+    if (childId == '1') {
+      return [
+        Pengukuran(
+          id: 'm1',
+          balitaId: '1',
+          tanggal: DateTime(2026, 9, 12),
+          beratBadan: 9.8,
+          tinggiBadan: 78,
+        ),
+        Pengukuran(
+          id: 'm2',
+          balitaId: '1',
+          tanggal: DateTime(2026, 8, 12),
+          beratBadan: 9.5,
+          tinggiBadan: 77,
+        ),
+      ];
+    }
+    if (childId == '2') {
+      return [
+        Pengukuran(
+          id: 'm3',
+          balitaId: '2',
+          tanggal: DateTime(2026, 7, 12),
+          beratBadan: 7.4,
+          tinggiBadan: 67,
+        ),
+      ];
+    }
+    return const [];
+  }
+}
+
+class _FakeInformasiService extends InformasiService {
+  @override
+  Future<List<Informasi>> fetchArticles() async => const [
+    Informasi(
+      id: '1',
+      judul: 'Artikel dari server',
+      kategori: 'Tumbuh Kembang',
+      ringkasan: 'Ringkasan artikel dari server.',
+    ),
+  ];
+}
 
 void main() {
-  testWidgets('Welcome screen shows the main actions', (
+  testWidgets('Splash screen displays the app branding', (
     WidgetTester tester,
   ) async {
-    // Build our app and trigger a frame.
     await tester.pumpWidget(const StunGuardApp());
 
-    // The welcome screen should render the login and register buttons.
-    expect(find.text('Login'), findsOneWidget);
-    expect(find.text('Buat Akun Baru'), findsOneWidget);
+    expect(find.text('StunGuard'), findsOneWidget);
+    expect(find.text('Pantau Tumbuh Kembang Si Kecil'), findsOneWidget);
   });
 
-  testWidgets('Home screen displays demo data and switches active child', (
+  testWidgets('Home screen loads real child and measurement data', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: HomeScreen(onOpenCalculator: () {})),
+        home: Scaffold(
+          body: HomeScreen(
+            user: {'name': 'Ibu'},
+            onOpenCalculator: () {},
+            balitaService: _FakeBalitaService(),
+            informasiService: _FakeInformasiService(),
+            pengukuranService: _FakePengukuranService(),
+          ),
+        ),
       ),
     );
 
-    expect(find.text('Danendra (14 Bulan)'), findsOneWidget);
-    expect(find.text('Gizi Normal'), findsOneWidget);
-    expect(find.text('Cek Gizi WHO'), findsOneWidget);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Danendra'), findsOneWidget);
+    expect(find.text('Artikel dari server'), findsOneWidget);
+    expect(find.text('Ringkasan artikel dari server.'), findsOneWidget);
+    expect(find.text('Kalkulator gizi'), findsOneWidget);
     expect(find.text('Resep MPASI'), findsOneWidget);
+  });
 
-    await tester.tap(find.byTooltip('Pilih anak'));
+  testWidgets('Growth chart shows dated details and switches metrics', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HomeScreen(
+            onOpenCalculator: () {},
+            balitaService: _FakeBalitaService(),
+            informasiService: _FakeInformasiService(),
+            pengukuranService: _FakePengukuranService(),
+          ),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Aluna (8 Bulan)').last);
+    await tester.scrollUntilVisible(find.text('Grafik pertumbuhan'), 400);
     await tester.pumpAndSettle();
 
-    expect(find.text('Aluna (8 Bulan)'), findsOneWidget);
+    expect(find.text('12 Agustus 2026 - 12 September 2026'), findsOneWidget);
+    expect(find.text('Berat: 9,5 kg'), findsOneWidget);
+    expect(find.text('Tinggi: 77 cm'), findsOneWidget);
+    expect(
+      find.text('Perubahan dari pengukuran sebelumnya: +0,3 kg • +1 cm'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Tinggi (cm)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sumbu vertikal: Tinggi badan (cm)'), findsOneWidget);
+  });
+
+  testWidgets('Home screen refreshes children when its tab becomes active', (
+    WidgetTester tester,
+  ) async {
+    final service = _RefreshableBalitaService();
+    var isHomeActive = true;
+    late StateSetter updateParent;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) {
+              updateParent = setState;
+              return HomeScreen(
+                isActive: isHomeActive,
+                onOpenCalculator: () {},
+                balitaService: service,
+                informasiService: _FakeInformasiService(),
+                pengukuranService: _FakePengukuranService(),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(service.fetchCount, 1);
+    expect(find.text('Bayi Baru'), findsNothing);
+
+    updateParent(() => isHomeActive = false);
+    await tester.pumpAndSettle();
+    updateParent(() => isHomeActive = true);
+    await tester.pumpAndSettle();
+
+    expect(service.fetchCount, 2);
+    expect(find.text('Bayi Baru'), findsOneWidget);
   });
 }
