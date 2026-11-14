@@ -18,11 +18,13 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   final form = GlobalKey<FormState>();
   final weight = TextEditingController();
   final height = TextEditingController();
+  final headCircumference = TextEditingController();
+  final lila = TextEditingController();
   final _balitaService = BalitaService();
   final _pengukuranService = PengukuranService();
   List<Balita> _children = [];
   String? _selectedChildId;
-  DateTime _measurementDate = DateUtils.dateOnly(DateTime.now());
+  DateTime get _measurementDate => DateUtils.dateOnly(DateTime.now());
   String _bodyPosition = 'terlentang';
   Map<String, dynamic>? _result;
   bool _resultUnavailable = false;
@@ -40,6 +42,8 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   void dispose() {
     weight.dispose();
     height.dispose();
+    headCircumference.dispose();
+    lila.dispose();
     super.dispose();
   }
 
@@ -72,32 +76,6 @@ class _CalculatorPageState extends State<CalculatorScreen> {
     }
   }
 
-  Future<void> _pickMeasurementDate() async {
-    final selectedChild = _selectedChild;
-    final birthDate = selectedChild == null
-        ? DateTime(2015)
-        : DateTime.parse(selectedChild.tanggalLahir);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _measurementDate.isBefore(birthDate)
-          ? DateUtils.dateOnly(DateTime.now())
-          : _measurementDate,
-      firstDate: birthDate,
-      lastDate: DateUtils.dateOnly(DateTime.now()),
-    );
-    if (picked != null) {
-      setState(() {
-        _measurementDate = DateUtils.dateOnly(picked);
-        final child = _selectedChild;
-        if (child != null) {
-          _bodyPosition = _positionFor(child, _measurementDate);
-        }
-        _result = null;
-        _resultUnavailable = false;
-      });
-    }
-  }
-
   Future<void> _saveMeasurement() async {
     if (!form.currentState!.validate()) return;
     final child = _selectedChild;
@@ -109,12 +87,14 @@ class _CalculatorPageState extends State<CalculatorScreen> {
       _resultUnavailable = false;
     });
     try {
-      final response = await _pengukuranService.saveForChild(
+      final response = await _pengukuranService.calculateForChild(
         childId: child.id,
-        date: _measurementDate,
+        date: DateUtils.dateOnly(DateTime.now()),
         weight: _parseNumber(weight.text),
         height: _parseNumber(height.text),
         bodyPosition: _bodyPosition,
+        headCircumference: _parseOptionalNumber(headCircumference.text),
+        lila: _parseOptionalNumber(lila.text),
       );
       if (!mounted) return;
       final result = _extractCalculationResult(response);
@@ -127,8 +107,8 @@ class _CalculatorPageState extends State<CalculatorScreen> {
         SnackBar(
           content: Text(
             result == null
-                ? 'Pengukuran tersimpan, tetapi server tidak mengirimkan hasil WHO.'
-                : 'Pengukuran berhasil disimpan.',
+                ? 'Server tidak mengirimkan hasil WHO.'
+                : 'Perhitungan WHO berhasil. Data tidak disimpan.',
           ),
         ),
       );
@@ -150,7 +130,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   @override
   Widget build(BuildContext context) => ScreenContent(
     title: 'Kalkulator Gizi',
-    subtitle: 'Catat pengukuran dan lihat hasil perhitungan standar WHO.',
+    subtitle: 'Hitung Z-score WHO tanpa menyimpan pengukuran ke database.',
     children: [
       if (_loadingChildren)
         const SurfaceCard(
@@ -191,11 +171,12 @@ class _CalculatorPageState extends State<CalculatorScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'Data pengukuran',
+                  'A. Input Pengukuran',
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                 ),
                 const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
+                  key: ValueKey('child-$_selectedChildId'),
                   initialValue: _selectedChildId,
                   decoration: const InputDecoration(labelText: 'Pilih anak'),
                   items: _children
@@ -221,15 +202,23 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                           _resultUnavailable = false;
                         }),
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _saving ? null : _pickMeasurementDate,
-                  icon: const Icon(Icons.calendar_month_outlined),
-                  label: Text(
-                    'Tanggal pengukuran: ${_formatDate(_measurementDate)}',
-                  ),
+                const SizedBox(height: 16),
+                const Text(
+                  '2. Identitas Anak',
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
+                Text(
+                  'Jenis kelamin: ${_genderLabel(_selectedChild?.jenisKelamin)}',
+                ),
+                const SizedBox(height: 4),
+                Text('Usia: ${_ageLabel(_selectedChild, _measurementDate)}'),
+                const SizedBox(height: 18),
+                const Text(
+                  '3. Pengukuran Utama',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: weight,
                   enabled: !_saving,
@@ -275,6 +264,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
+                  key: ValueKey('position-$_selectedChildId-$_bodyPosition'),
                   initialValue: _bodyPosition,
                   decoration: const InputDecoration(labelText: 'Posisi badan'),
                   items: const [
@@ -295,6 +285,55 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                           _resultUnavailable = false;
                         }),
                 ),
+                const SizedBox(height: 18),
+                const Text(
+                  '4. Pengukuran Tambahan (Opsional)',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: headCircumference,
+                  enabled: !_saving,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Lingkar kepala (cm)',
+                    hintText: 'Contoh: 45,5',
+                  ),
+                  validator: (value) => _validateOptionalNumber(
+                    value,
+                    minimum: 20,
+                    maximum: 70,
+                    label: 'Lingkar kepala',
+                  ),
+                  onChanged: (_) => setState(() {
+                    _result = null;
+                    _resultUnavailable = false;
+                  }),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: lila,
+                  enabled: !_saving,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'LiLA (cm)',
+                    hintText: 'Contoh: 13,5',
+                  ),
+                  validator: (value) => _validateOptionalNumber(
+                    value,
+                    minimum: 5,
+                    maximum: 40,
+                    label: 'LiLA',
+                  ),
+                  onChanged: (_) => setState(() {
+                    _result = null;
+                    _resultUnavailable = false;
+                  }),
+                ),
                 const SizedBox(height: 16),
                 FilledButton.icon(
                   onPressed: _saving ? null : _saveMeasurement,
@@ -304,10 +343,12 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.save_outlined),
+                      : const Icon(Icons.calculate_outlined),
                   label: Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Text(_saving ? 'Menyimpan...' : 'Simpan pengukuran'),
+                    child: Text(
+                      _saving ? 'Menghitung...' : '5. Hitung Z-score WHO',
+                    ),
                   ),
                 ),
               ],
@@ -322,7 +363,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
         const SizedBox(height: 16),
         const SurfaceCard(
           child: Text(
-            'Pengukuran tersimpan, tetapi API belum mengirimkan hasil perhitungan WHO lengkap. Periksa respons endpoint pengukuran.',
+            'Server belum mengirimkan hasil perhitungan WHO. Tidak ada pengukuran yang disimpan.',
             style: TextStyle(color: SG.muted, height: 1.5),
           ),
         ),
@@ -350,7 +391,39 @@ String? _validateNumber(
   return null;
 }
 
-String _formatDate(DateTime date) => '${date.day}/${date.month}/${date.year}';
+double? _parseOptionalNumber(String value) =>
+    value.trim().isEmpty ? null : _parseNumber(value);
+
+String? _validateOptionalNumber(
+  String? value, {
+  required double minimum,
+  required double maximum,
+  required String label,
+}) {
+  if (value == null || value.trim().isEmpty) return null;
+  return _validateNumber(
+    value,
+    minimum: minimum,
+    maximum: maximum,
+    label: label,
+  );
+}
+
+String _genderLabel(String? value) {
+  final lower = (value ?? '').toLowerCase();
+  if (lower == 'l' || lower.contains('laki')) return 'Laki-laki';
+  if (lower == 'p' || lower.contains('perempuan')) return 'Perempuan';
+  return '-';
+}
+
+String _ageLabel(Balita? child, DateTime date) {
+  if (child == null) return '-';
+  final birth = DateTime.tryParse(child.tanggalLahir);
+  if (birth == null) return '-';
+  var months = (date.year - birth.year) * 12 + date.month - birth.month;
+  if (date.day < birth.day) months--;
+  return '${months < 0 ? 0 : months} bulan';
+}
 
 String _positionFor(Balita child, DateTime measurementDate) {
   final birthDate = DateTime.parse(child.tanggalLahir);
@@ -368,10 +441,25 @@ String _messageFromError(Object error) =>
 Map<String, dynamic>? _extractCalculationResult(Map<String, dynamic> response) {
   final nestedResult = response['hasil'];
   if (nestedResult is Map) {
-    return Map<String, dynamic>.from(nestedResult);
+    final result = Map<String, dynamic>.from(nestedResult);
+    final child = response['balita'];
+    final measurement = response['pengukuran'];
+    if (child is Map) {
+      result['usia_bulan'] = child['usia_bulan'];
+      result['jenis_kelamin'] = child['jenis_kelamin'];
+    }
+    if (measurement is Map) {
+      result['berat_badan'] = measurement['berat_badan'];
+      result['tinggi_badan'] = measurement['tinggi_badan'];
+      result['posisi_badan'] = measurement['posisi_badan'];
+    }
+    result['catatan'] =
+        'Hasil hanya ditampilkan saat ini dan tidak disimpan ke database.';
+    return result;
   }
 
   const resultKeys = [
+    'z_score_tbu',
     'z_score',
     'z_bbu',
     'pbu',

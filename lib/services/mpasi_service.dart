@@ -22,7 +22,7 @@ class MpasiService {
     final parameters = {
       'page': '$page',
       if (query.trim().isNotEmpty) 'q': query.trim(),
-      if (kategoriUsia != null) 'kategori_usia': kategoriUsia,
+      'kategori_usia': ?kategoriUsia,
     };
     final response = await ApiClient.get(
       'mpasi?${Uri(queryParameters: parameters).query}',

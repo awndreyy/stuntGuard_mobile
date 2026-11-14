@@ -15,6 +15,23 @@ class ApiClient {
     return Uri.parse('${ApiConfig.baseUrl}/$normalizedEndpoint');
   }
 
+  static Uri resolveServerUri(String path) {
+    final uri = Uri.parse(path);
+    if (uri.hasScheme) return uri;
+
+    final baseUri = Uri.parse(ApiConfig.baseUrl);
+    final serverPath = baseUri.path
+        .replaceFirst(RegExp(r'/api/?$'), '')
+        .replaceFirst(RegExp(r'/+$'), '');
+    final resourcePath = uri.path.startsWith('/') ? uri.path : '/${uri.path}';
+
+    return baseUri.replace(
+      path: '$serverPath$resourcePath',
+      query: uri.hasQuery ? uri.query : null,
+      fragment: uri.hasFragment ? uri.fragment : null,
+    );
+  }
+
   static Future<http.Response> get(
     String endpoint, {
     Map<String, String>? headers,

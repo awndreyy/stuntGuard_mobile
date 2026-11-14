@@ -29,8 +29,9 @@ class BalitaService {
       final errors = data['errors'];
       if (errors is Map && errors.isNotEmpty) {
         final first = errors.values.first;
-        if (first is List && first.isNotEmpty)
+        if (first is List && first.isNotEmpty) {
           throw Exception(first.first.toString());
+        }
       }
       throw Exception(data['message']?.toString() ?? 'Permintaan gagal.');
     }
