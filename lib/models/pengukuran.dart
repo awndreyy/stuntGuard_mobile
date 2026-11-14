@@ -4,6 +4,7 @@ class Pengukuran {
   final DateTime tanggal;
   final double beratBadan;
   final double tinggiBadan;
+  final Map<String, dynamic>? hasil;
 
   const Pengukuran({
     required this.id,
@@ -11,6 +12,7 @@ class Pengukuran {
     required this.tanggal,
     required this.beratBadan,
     required this.tinggiBadan,
+    this.hasil,
   });
 
   factory Pengukuran.fromJson(Map<String, dynamic> json, {String? balitaId}) {
@@ -19,9 +21,13 @@ class Pengukuran {
     final rawTanggal = json['tanggal_pengukuran'];
     final rawBerat = json['berat_badan'];
     final rawTinggi = json['tinggi_badan'];
+    final rawHasil = json['hasil'];
 
     if (id == null || rawBalitaId == null || rawTanggal is! String) {
       throw const FormatException('Data pengukuran dari server tidak valid.');
+    }
+    if (rawHasil != null && rawHasil is! Map) {
+      throw const FormatException('Hasil pengukuran dari server tidak valid.');
     }
 
     final tanggal = DateTime.tryParse(rawTanggal);
@@ -37,6 +43,7 @@ class Pengukuran {
       tanggal: tanggal,
       beratBadan: berat,
       tinggiBadan: tinggi,
+      hasil: rawHasil == null ? null : Map<String, dynamic>.from(rawHasil),
     );
   }
 

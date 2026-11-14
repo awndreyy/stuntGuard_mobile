@@ -10,6 +10,7 @@ import 'package:stuntguardmobile/main.dart';
 import 'package:stuntguardmobile/models/balita.dart';
 import 'package:stuntguardmobile/models/informasi.dart';
 import 'package:stuntguardmobile/models/pengukuran.dart';
+import 'package:stuntguardmobile/screens/education/education_screen.dart';
 import 'package:stuntguardmobile/screens/home/home_screen.dart';
 import 'package:stuntguardmobile/services/balita_service.dart';
 import 'package:stuntguardmobile/services/informasi_service.dart';
@@ -71,6 +72,19 @@ class _FakePengukuranService extends PengukuranService {
           tanggal: DateTime(2026, 9, 12),
           beratBadan: 9.8,
           tinggiBadan: 78,
+          hasil: const {
+            'jenis_kelamin': 'Laki-laki',
+            'usia_bulan': 20,
+            'berat': 9.8,
+            'tinggi': 78,
+            'posisi_badan': 'terlentang',
+            'z_score': -2.4,
+            'status_stunting': 'Pendek (Stunted)',
+            'indikator_tinggi': 'PB/U',
+            'indikator_berat_tinggi': 'BB/PB',
+            'z_bbu': -1.0,
+            'z_bb_tb': 0.2,
+          },
         ),
         Pengukuran(
           id: 'm2',
@@ -97,15 +111,19 @@ class _FakePengukuranService extends PengukuranService {
 }
 
 class _FakeInformasiService extends InformasiService {
+  static const article = Informasi(
+    id: '1',
+    judul: 'Artikel dari server',
+    kategori: 'Tumbuh Kembang',
+    ringkasan: 'Ringkasan artikel dari server.',
+    content: 'Isi lengkap artikel dari server.',
+  );
+
   @override
-  Future<List<Informasi>> fetchArticles() async => const [
-    Informasi(
-      id: '1',
-      judul: 'Artikel dari server',
-      kategori: 'Tumbuh Kembang',
-      ringkasan: 'Ringkasan artikel dari server.',
-    ),
-  ];
+  Future<List<Informasi>> fetchArticles() async => const [article];
+
+  @override
+  Future<Informasi> fetchArticle(String id) async => article;
 }
 
 void main() {
@@ -144,6 +162,31 @@ void main() {
     expect(find.text('Resep MPASI'), findsOneWidget);
   });
 
+  testWidgets('Education screen loads API articles and opens article detail', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: EducationScreen(
+            isActive: true,
+            informationService: _FakeInformasiService(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Artikel dari server'), findsOneWidget);
+    expect(find.text('Tumbuh Kembang'), findsOneWidget);
+
+    await tester.tap(find.text('Artikel dari server'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Artikel Edukasi'), findsOneWidget);
+    expect(find.text('Isi lengkap artikel dari server.'), findsOneWidget);
+  });
+
   testWidgets('Growth chart shows dated details and switches metrics', (
     WidgetTester tester,
   ) async {
@@ -175,6 +218,34 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sumbu vertikal: Tinggi badan (cm)'), findsOneWidget);
+  });
+
+  testWidgets('Tapping a measurement opens its saved WHO result', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HomeScreen(
+            onOpenCalculator: () {},
+            balitaService: _FakeBalitaService(),
+            informasiService: _FakeInformasiService(),
+            pengukuranService: _FakePengukuranService(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final historyItem = find.byKey(const ValueKey('measurement-history-m1'));
+    await tester.ensureVisible(historyItem);
+    await tester.pumpAndSettle();
+    await tester.tap(historyItem);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Detail Pengukuran'), findsOneWidget);
+    expect(find.text('Hasil perhitungan WHO'), findsOneWidget);
+    expect(find.text('Pendek (Stunted)'), findsOneWidget);
   });
 
   testWidgets('Home screen refreshes children when its tab becomes active', (

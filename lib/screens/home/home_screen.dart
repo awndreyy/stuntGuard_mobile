@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/balita.dart';
 import '../../models/informasi.dart';
 import '../../models/pengukuran.dart';
+import 'measurement_detail_screen.dart';
 import '../../services/balita_service.dart';
 import '../../services/informasi_service.dart';
 import '../../services/pengukuran_service.dart';
@@ -888,51 +889,73 @@ class _HomeScreenState extends State<HomeScreen> {
                     for (var i = 0; i < history.length; i++) ...[
                       if (i > 0)
                         const Divider(height: 32, color: _HomeColors.line),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _iconTile(
-                            Icons.event_note_rounded,
-                            _HomeColors.primary,
-                            _HomeColors.pale,
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          key: ValueKey('measurement-history-${history[i].id}'),
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => MeasurementDetailScreen(
+                                measurement: history[i],
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  history[i].tanggalLabel,
-                                  style: const TextStyle(
-                                    color: _HomeColors.ink,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                _iconTile(
+                                  Icons.event_note_rounded,
+                                  _HomeColors.primary,
+                                  _HomeColors.pale,
                                 ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '${history[i].beratLabel} kg  •  ${history[i].tinggiLabel} cm',
-                                  style: const TextStyle(
-                                    color: _HomeColors.muted,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                if (i == 0)
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 6),
-                                    child: Text(
-                                      'Terbaru',
-                                      style: TextStyle(
-                                        color: _HomeColors.primary,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        history[i].tanggalLabel,
+                                        style: const TextStyle(
+                                          color: _HomeColors.ink,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        '${history[i].beratLabel} kg  •  ${history[i].tinggiLabel} cm',
+                                        style: const TextStyle(
+                                          color: _HomeColors.muted,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      if (i == 0)
+                                        const Padding(
+                                          padding: EdgeInsets.only(top: 6),
+                                          child: Text(
+                                            'Terbaru',
+                                            style: TextStyle(
+                                              color: _HomeColors.primary,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
+                                ),
+                                const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: _HomeColors.muted,
+                                ),
                               ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ],
                   ],
