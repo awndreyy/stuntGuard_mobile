@@ -71,6 +71,19 @@ class _FakePengukuranService extends PengukuranService {
           tanggal: DateTime(2026, 9, 12),
           beratBadan: 9.8,
           tinggiBadan: 78,
+          hasil: const {
+            'jenis_kelamin': 'Laki-laki',
+            'usia_bulan': 20,
+            'berat': 9.8,
+            'tinggi': 78,
+            'posisi_badan': 'terlentang',
+            'z_score': -2.4,
+            'status_stunting': 'Pendek (Stunted)',
+            'indikator_tinggi': 'PB/U',
+            'indikator_berat_tinggi': 'BB/PB',
+            'z_bbu': -1.0,
+            'z_bb_tb': 0.2,
+          },
         ),
         Pengukuran(
           id: 'm2',
@@ -175,6 +188,34 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sumbu vertikal: Tinggi badan (cm)'), findsOneWidget);
+  });
+
+  testWidgets('Tapping a measurement opens its saved WHO result', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HomeScreen(
+            onOpenCalculator: () {},
+            balitaService: _FakeBalitaService(),
+            informasiService: _FakeInformasiService(),
+            pengukuranService: _FakePengukuranService(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final historyItem = find.byKey(const ValueKey('measurement-history-m1'));
+    await tester.ensureVisible(historyItem);
+    await tester.pumpAndSettle();
+    await tester.tap(historyItem);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Detail Pengukuran'), findsOneWidget);
+    expect(find.text('Hasil perhitungan WHO'), findsOneWidget);
+    expect(find.text('Pendek (Stunted)'), findsOneWidget);
   });
 
   testWidgets('Home screen refreshes children when its tab becomes active', (

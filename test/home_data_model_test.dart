@@ -10,6 +10,11 @@ void main() {
       'tanggal_pengukuran': '2026-10-12T00:00:00.000000Z',
       'berat_badan': 9.25,
       'tinggi_badan': 78.5,
+      'hasil': {
+        'usia_bulan': 10,
+        'z_score': -2.3,
+        'status_stunting': 'Pendek (Stunted)',
+      },
     });
 
     expect(measurement.id, '42');
@@ -17,6 +22,7 @@ void main() {
     expect(measurement.tanggalLabel, '12 Oktober 2026');
     expect(measurement.beratLabel, '9,25');
     expect(measurement.tinggiLabel, '78,5');
+    expect(measurement.hasil?['z_score'], -2.3);
   });
 
   test('Pengukuran rejects incomplete API data', () {
