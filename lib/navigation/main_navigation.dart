@@ -73,7 +73,7 @@ class _MainNavigationState extends State<MainNavigation> {
       ),
       const MpasiScreen(),
       const CalculatorScreen(),
-      const EducationScreen(),
+      EducationScreen(isActive: selected == 3),
       ProfileScreen(
         user: widget.user,
         onLogout: logout,
