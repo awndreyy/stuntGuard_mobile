@@ -55,7 +55,7 @@ class WhoResultCard extends StatelessWidget {
   }
 
   double? _mainScore() {
-    final value = _indicatorValue('z_score', 'pbu');
+    final value = _indicatorValue('z_score_tbu', 'pbu');
     if (value is num) return value.toDouble();
     return double.tryParse(value?.toString().replaceAll(',', '.') ?? '');
   }
@@ -64,7 +64,7 @@ class WhoResultCard extends StatelessWidget {
       (_firstValue(['ringkasan', 'status_stunting']) ??
               _nestedResult('pbu')?['status'])
           ?.toString() ??
-      'Hasil perhitungan tersimpan';
+      'Hasil perhitungan WHO';
 
   String _gender() {
     final value = (_firstValue(['jenis_kelamin_label', 'jenis_kelamin']))
@@ -152,17 +152,20 @@ class WhoResultCard extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.w700, color: SG.ink),
           ),
           const SizedBox(height: 8),
-          _IndicatorRow(label: 'BB/U', value: _scoreText('z_bbu', 'bbu')),
+          _IndicatorRow(label: 'BB/U', value: _scoreText('z_score_bbu', 'bbu')),
           _IndicatorRow(
             label: heightIndicator,
-            value: _scoreText('z_score', 'pbu'),
+            value: _scoreText('z_score_tbu', 'pbu'),
           ),
           _IndicatorRow(
             label: weightHeightIndicator,
-            value: _scoreText('z_bb_tb', 'bbpb'),
+            value: _scoreText('z_score_bbtb', 'bbpb'),
           ),
-          _IndicatorRow(label: 'LK/U', value: _scoreText('z_lku', 'lku')),
-          _IndicatorRow(label: 'LiLA/U', value: _scoreText('z_lilau', 'lilau')),
+          _IndicatorRow(label: 'LK/U', value: _scoreText('z_score_lku', 'lku')),
+          _IndicatorRow(
+            label: 'LiLA/U',
+            value: _scoreText('z_score_lilau', 'lilau'),
+          ),
           if (correctedHeight != null) ...[
             const SizedBox(height: 8),
             Text(
@@ -182,7 +185,7 @@ class WhoResultCard extends StatelessWidget {
                 ),
               ),
               Text(
-                _scoreText('z_score', 'pbu'),
+                _scoreText('z_score_tbu', 'pbu'),
                 style: const TextStyle(
                   color: SG.ink,
                   fontWeight: FontWeight.w800,
@@ -194,7 +197,7 @@ class WhoResultCard extends StatelessWidget {
           _ZScorePanel(
             score: score,
             label: heightIndicator,
-            scoreText: _scoreText('z_score', 'pbu'),
+            scoreText: _scoreText('z_score_tbu', 'pbu'),
           ),
           const SizedBox(height: 12),
           Container(
@@ -267,7 +270,7 @@ class WhoResultCard extends StatelessWidget {
           ],
           const SizedBox(height: 10),
           Text(
-            note ?? 'Data sudah tersimpan dan akan muncul di riwayat serta beranda.',
+            note ?? 'Hasil kalkulator tidak disimpan. Riwayat hanya menampilkan data yang tersimpan sebelumnya oleh petugas/admin.',
             style: const TextStyle(color: SG.muted, fontSize: 12, height: 1.4),
           ),
         ],

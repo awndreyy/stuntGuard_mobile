@@ -4,29 +4,48 @@ import 'package:http/http.dart' as http;
 
 import '../core/services/api_client.dart';
 import '../models/informasi.dart';
+import 'auth_service.dart';
 
 class InformasiService {
-  Future<List<Informasi>> fetchArticles() async {
-    final response = await ApiClient.get(
-      'informasi',
-      headers: const {'Accept': 'application/json'},
-    );
-    final data = _parse(response);
-
-    final rows = data['data'];
-    if (rows is! List) {
-      throw Exception('Format daftar artikel dari server tidak sesuai.');
+  Future<Map<String, String>> _headers() async {
+    final token = await AuthService().getToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('Sesi login tidak ditemukan. Silakan login kembali.');
     }
+    return {'Accept': 'application/json', 'Authorization': 'Bearer $token'};
+  }
 
-    return rows
-        .map((row) => _articleFromJson(Map<String, dynamic>.from(row as Map)))
-        .toList();
+  /// Ambil seluruh halaman hasil paginasi Laravel untuk beranda dan pencarian lokal.
+  Future<List<Informasi>> fetchArticles() async {
+    final articles = <Informasi>[];
+    var page = 1;
+    while (true) {
+      final response = await ApiClient.get(
+        'informasi?page=$page&per_page=50',
+        headers: await _headers(),
+      );
+      final data = _parse(response);
+      final rows = data['data'];
+      if (rows is! List) {
+        throw Exception('Format daftar artikel dari server tidak sesuai.');
+      }
+      articles.addAll(
+        rows.map(
+          (row) => _articleFromJson(Map<String, dynamic>.from(row as Map)),
+        ),
+      );
+      final current = (data['current_page'] as num?)?.toInt() ?? page;
+      final last = (data['last_page'] as num?)?.toInt() ?? current;
+      if (current >= last) break;
+      page = current + 1;
+    }
+    return articles;
   }
 
   Future<Informasi> fetchArticle(String id) async {
     final response = await ApiClient.get(
       'informasi/${Uri.encodeComponent(id)}',
-      headers: const {'Accept': 'application/json'},
+      headers: await _headers(),
     );
     final data = _parse(response);
     final row = data['data'];
@@ -45,6 +64,9 @@ class InformasiService {
       throw Exception('Respons API artikel tidak valid.');
     }
 
+    if (response.statusCode == 401) {
+      throw Exception('Sesi login telah berakhir. Silakan login kembali.');
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(data['message']?.toString() ?? 'Gagal memuat artikel.');
     }

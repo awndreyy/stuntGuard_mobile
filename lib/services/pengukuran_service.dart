@@ -38,52 +38,65 @@ class PengukuranService {
     return data;
   }
 
+  /// Riwayat dari petugas / data lama. Kalkulasi orang tua tidak tersimpan.
   Future<List<Pengukuran>> fetchByChild(String childId) async {
     if (childId.trim().isEmpty) return const [];
-
-    final response = await ApiClient.get(
-      'balita/${Uri.encodeComponent(childId)}/pengukuran',
-      headers: await _headers(),
-    );
-    final data = _parse(response);
-    final rows = data['data'];
-    if (rows is! List) {
-      throw Exception('Format daftar pengukuran dari server tidak sesuai.');
-    }
-
-    return rows
-        .map(
-          (row) => Pengukuran.fromJson(
+    final result = <Pengukuran>[];
+    var page = 1;
+    while (true) {
+      final response = await ApiClient.get(
+        'balita/${Uri.encodeComponent(childId)}/pengukuran?page=$page&per_page=50',
+        headers: await _headers(),
+      );
+      final data = _parse(response);
+      final pagination = data['pengukurans'];
+      if (pagination is! Map || pagination['data'] is! List) {
+        throw Exception('Format riwayat pengukuran server tidak sesuai.');
+      }
+      for (final row in pagination['data'] as List) {
+        result.add(
+          Pengukuran.fromJson(
             Map<String, dynamic>.from(row as Map),
             balitaId: childId,
           ),
-        )
-        .toList();
+        );
+      }
+      final current = (pagination['current_page'] as num?)?.toInt() ?? page;
+      final last = (pagination['last_page'] as num?)?.toInt() ?? current;
+      if (current >= last) break;
+      page = current + 1;
+    }
+    return result;
   }
 
-  Future<Map<String, dynamic>> saveForChild({
+  /// Hanya menghitung WHO. Endpoint Laravel tidak menulis ke database.
+  Future<Map<String, dynamic>> calculateForChild({
     required String childId,
     required DateTime date,
     required double weight,
     required double height,
     required String bodyPosition,
+    double? headCircumference,
+    double? lila,
   }) async {
     if (childId.trim().isEmpty) {
       throw Exception('Pilih anak yang akan diukur.');
     }
-
     final dateOnly =
         '${date.year.toString().padLeft(4, '0')}-'
         '${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
     final response = await ApiClient.post(
-      'balita/${Uri.encodeComponent(childId)}/pengukuran',
+      'pengukuran/hitung',
       headers: await _headers(),
       body: jsonEncode({
+        'balita_id': childId,
         'tanggal_pengukuran': dateOnly,
-        'weight': weight,
-        'height': height,
+        'berat_badan': weight,
+        'tinggi_badan': height,
         'posisi_badan': bodyPosition,
+        'lingkar_kepala': ?headCircumference,
+        'lila': ?lila,
       }),
     );
     return _parse(response);

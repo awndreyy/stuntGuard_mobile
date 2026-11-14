@@ -831,7 +831,6 @@ class _ResepCard extends StatelessWidget {
 class _RecipeColors {
   static const primary = Color(0xFFC8103D);
   static const dark = Color(0xFF8B1038);
-  static const yellow = Color(0xFFFFD84D);
   static const background = Color(0xFFFFF7F4);
   static const ink = Color(0xFF222629);
   static const muted = Color(0xFF725C62);

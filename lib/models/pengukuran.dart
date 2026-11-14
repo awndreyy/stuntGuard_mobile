@@ -43,7 +43,19 @@ class Pengukuran {
       tanggal: tanggal,
       beratBadan: berat,
       tinggiBadan: tinggi,
-      hasil: rawHasil == null ? null : Map<String, dynamic>.from(rawHasil),
+      hasil: rawHasil is Map
+          ? Map<String, dynamic>.from(rawHasil)
+          : {
+              'status_stunting': json['status_stunting'],
+              'status_berat_badan': json['status_berat_badan'],
+              'status_gizi': json['status_gizi'],
+              'z_score_tbu': json['z_score_tbu'],
+              'z_score_bbu': json['z_score_bbu'],
+              'z_score_bbtb': json['z_score_bbtb'],
+              'usia_bulan': json['umur_bulan'],
+              'berat_badan': rawBerat,
+              'tinggi_badan': rawTinggi,
+            },
     );
   }
 

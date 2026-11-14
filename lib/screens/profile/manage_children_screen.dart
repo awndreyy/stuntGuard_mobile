@@ -325,7 +325,7 @@ class _ChildFormScreenState extends State<_ChildFormScreen> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _gender,
+            initialValue: _gender,
             decoration: const InputDecoration(
               labelText: 'Jenis Kelamin',
               border: OutlineInputBorder(),
