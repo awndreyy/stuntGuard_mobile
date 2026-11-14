@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../models/mpasi.dart';
 import '../../services/mpasi_service.dart';
@@ -537,12 +538,11 @@ class _MpasiScreenState extends State<MpasiScreen> {
                           Positioned(
                             right: -8,
                             bottom: -12,
-                            child: Image.asset(
-                              'assets/animations/bayi_mpasi.gif',
+                            child: Lottie.asset(
+                              'assets/animations/bayi_merangkaks.json',
                               width: babyWidth,
                               height: narrow ? 125 : 145,
                               fit: BoxFit.contain,
-                              gaplessPlayback: true,
                             ),
                           ),
                         ],
