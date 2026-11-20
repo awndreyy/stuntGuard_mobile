@@ -6,7 +6,6 @@ class PersonalDataScreen extends StatelessWidget {
 
   const PersonalDataScreen({super.key, required this.user});
 
-  static const Color _primary = Color(0xFFA8224A);
   static const Color _primaryContainer = Color(0xFFF7E5EA);
   static const Color _onPrimaryContainer = Color(0xFF701230);
   static const Color _surface = Color(0xFFFFFDF9);
@@ -85,15 +84,15 @@ class PersonalDataScreen extends StatelessWidget {
                                         Container(
                                           width: 36,
                                           height: 36,
+                                          padding: const EdgeInsets.all(4),
                                           decoration: BoxDecoration(
                                             color: _surfaceContainer,
                                             borderRadius: BorderRadius.circular(12),
                                           ),
-                                          alignment: Alignment.center,
-                                          child: const Icon(
-                                            Icons.health_and_safety,
-                                            color: _primary,
-                                            size: 20,
+                                          child: Image.asset(
+                                            'assets/images/logo-StuntGuard.png',
+                                            fit: BoxFit.contain,
+                                            excludeFromSemantics: true,
                                           ),
                                         ),
                                         const SizedBox(width: 8),
