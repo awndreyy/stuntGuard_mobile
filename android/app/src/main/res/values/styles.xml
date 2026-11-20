@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="splash_background">#852641</color>
+
+    <style name="LaunchTheme"
+        parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">
+            @drawable/launch_background
+        </item>
+    </style>
+
+    <style name="NormalTheme"
+        parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">
+            ?android:colorBackground
+        </item>
+    </style>
 </resources>

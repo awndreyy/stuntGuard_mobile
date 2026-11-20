@@ -203,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text(
-                              'StunGuard',
+                              'StuntGuard',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 24,
