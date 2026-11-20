@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/sg_theme.dart';
 import 'register_screen.dart';
 import '../navigation/main_navigation.dart';
@@ -19,24 +20,23 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-    bool _obscurePassword = true;
+  bool _obscurePassword = true;
 
-  
   final AuthService _authService = AuthService();
 
-    bool _isLoading = false;
+  bool _isLoading = false;
 
-    Future<void> _login() async {
-      if (!_formKey.currentState!.validate()) {
-        return;
-      }
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-      setState(() {
-        _isLoading = true;
-      });
+    setState(() {
+      _isLoading = true;
+    });
 
-      try {
-        final result = await _authService.login(
+    try {
+      final result = await _authService.login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
@@ -50,24 +50,24 @@ class _LoginScreenState extends State<LoginScreen> {
         (route) => false,
       );
 
-        // Token sudah tersimpan di Secure Storage.
-      } catch (e) {
-        if (!mounted) return;
+      // Token sudah tersimpan di Secure Storage.
+    } catch (e) {
+      if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
+  }
 
   @override
   void dispose() {
@@ -91,11 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    SG.primaryDark,
-                    SG.primary,
-                    SG.primaryDark,
-                  ],
+                  colors: [SG.primaryDark, SG.primary, SG.primaryDark],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -311,10 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text(
                             'Masuk untuk memantau tumbuh kembang si kecil',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: SG.muted,
-                            ),
+                            style: TextStyle(fontSize: 12, color: SG.muted),
                           ),
                         ),
                         const SizedBox(height: 26),
@@ -347,24 +340,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          decoration: _buildInputDecoration(
-                            hint: 'minimal 6 karakter',
-                          ).copyWith(
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: SG.muted,
-                                size: 20,
-                              ),
-                            ),
-                          ),
+                          decoration:
+                              _buildInputDecoration(hint: 'minimal 6 karakter')
+                                  .copyWith(
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscurePassword = !_obscurePassword;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_outlined
+                                            : Icons.visibility_off_outlined,
+                                        color: SG.muted,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Password wajib diisi';
@@ -417,10 +410,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               const Text(
                                 'Belum punya akun? ',
-                                style: TextStyle(
-                                  color: SG.muted,
-                                  fontSize: 13,
-                                ),
+                                style: TextStyle(color: SG.muted, fontSize: 13),
                               ),
                               GestureDetector(
                                 onTap: () {
@@ -450,10 +440,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text(
                             '© 2026 StunGuard Jember. Made by kelompok 2',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: SG.muted,
-                            ),
+                            style: TextStyle(fontSize: 10, color: SG.muted),
                           ),
                         ),
                       ],
@@ -481,11 +468,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
       child: Center(
-        child: Icon(
-          icon,
-          color: Colors.white.withValues(alpha: 0.9),
-          size: 19,
-        ),
+        child: Icon(icon, color: Colors.white.withValues(alpha: 0.9), size: 19),
       ),
     );
   }
@@ -504,10 +487,7 @@ class _LoginScreenState extends State<LoginScreen> {
   InputDecoration _buildInputDecoration({required String hint}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(
-        color: SG.muted,
-        fontSize: 13,
-      ),
+      hintStyle: const TextStyle(color: SG.muted, fontSize: 13),
       filled: true,
       fillColor: SG.soft,
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
