@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/sg_theme.dart';
 import '../services/auth_service.dart';
 
@@ -19,62 +20,61 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nikController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   final AuthService _authService = AuthService();
 
-    bool _isLoading = false;
+  bool _isLoading = false;
 
-    Future<void> _register() async {
-      if (!_formKey.currentState!.validate()) {
-        return;
-      }
-
-      if (!_setuju) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Silakan centang persetujuan data terlebih dahulu.'),
-          ),
-        );
-        return;
-      }
-
-      setState(() {
-        _isLoading = true;
-      });
-
-      try {
-        await _authService.register(
-          nama: _namaController.text.trim(),
-          nik: _nikController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registrasi berhasil! Silakan login.')),
-        );
-
-        Navigator.pop(context);
-      } catch (e) {
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
 
+    if (!_setuju) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan centang persetujuan data terlebih dahulu.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _authService.register(
+        nama: _namaController.text.trim(),
+        nik: _nikController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registrasi berhasil! Silakan login.')),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   bool _obscurePassword = true;
   bool _setuju = false;
@@ -114,11 +114,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    SG.primaryDark,
-                    SG.primary,
-                    SG.primaryDark,
-                  ],
+                  colors: [SG.primaryDark, SG.primary, SG.primaryDark],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -413,10 +409,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 4),
                         const Text(
                           'Harus berupa 16 digit angka sesuai KTP',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: SG.muted,
-                          ),
+                          style: TextStyle(fontSize: 11, color: SG.muted),
                         ),
                         const SizedBox(height: 16),
 
@@ -482,10 +475,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 4),
                         const Text(
                           'Gunakan minimal 6 karakter',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: SG.muted,
-                          ),
+                          style: TextStyle(fontSize: 11, color: SG.muted),
                         ),
                         const SizedBox(height: 16),
 
@@ -551,8 +541,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               backgroundColor: SG.primary,
                               foregroundColor: Colors.white,
                               elevation: 4,
-                              shadowColor: SG.primary
-                                  .withValues(alpha: 0.4),
+                              shadowColor: SG.primary.withValues(alpha: 0.4),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -579,7 +568,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Center(
                           child: TextButton.icon(
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.arrow_back_rounded, size: 20),
+                            icon: const Icon(
+                              Icons.arrow_back_rounded,
+                              size: 20,
+                            ),
                             label: const Text('Kembali ke Login'),
                             style: TextButton.styleFrom(
                               foregroundColor: SG.primary,
@@ -593,10 +585,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: Text(
                             '© 2026 StunGuard Jember. Kelompok 2',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: SG.muted,
-                            ),
+                            style: TextStyle(fontSize: 10, color: SG.muted),
                           ),
                         ),
                       ],
@@ -641,10 +630,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           TextSpan(text: text),
           const TextSpan(
             text: ' *',
-            style: TextStyle(
-              color: SG.primary,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: SG.primary, fontWeight: FontWeight.bold),
           ),
         ],
       ),
