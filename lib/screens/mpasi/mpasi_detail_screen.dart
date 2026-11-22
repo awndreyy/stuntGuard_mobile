@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/mpasi.dart';
-import '../../widgets/mpasi_recipe_image.dart';
+import 'widgets/mpasi_detail_header.dart';
 
 class _DetailColors {
   static const primary = Color(0xFFC8103D);
@@ -31,7 +31,7 @@ class MpasiDetailScreen extends StatelessWidget {
     backgroundColor: Colors.white,
     body: CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: _header(context)),
+        SliverToBoxAdapter(child: MpasiDetailHeader(resep: resep)),
         SliverToBoxAdapter(
           child: Center(
             child: ConstrainedBox(
@@ -158,89 +158,6 @@ class MpasiDetailScreen extends StatelessWidget {
           ),
         ),
       ],
-    ),
-  );
-
-  Widget _header(BuildContext context) => ClipPath(
-    clipper: _DetailWaveClipper(),
-    child: Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_DetailColors.primary, _DetailColors.dark],
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 48),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        tooltip: 'Kembali ke daftar resep',
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: IconButton.styleFrom(
-                          minimumSize: const Size(48, 48),
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.white.withValues(alpha: .15),
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: .35),
-                          ),
-                        ),
-                        icon: const Icon(Icons.arrow_back_rounded),
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Text(
-                          'StuntGuard • Jember Bebas Stunting',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Semantics(
-                    image: true,
-                    label: 'Foto ${resep.nama}',
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 240),
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: ClipOval(
-                          child: ColoredBox(
-                            color: _DetailColors.pale,
-                            child: MpasiRecipeImage(
-                              url: resep.gambarUrl,
-                              size: 72,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     ),
   );
 
@@ -559,26 +476,4 @@ class _NutritionSpec {
   final Color color;
   final Color background;
   const _NutritionSpec(this.label, this.index, this.color, this.background);
-}
-
-class _DetailWaveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) => Path()
-    ..lineTo(0, size.height - 36)
-    ..quadraticBezierTo(
-      size.width * .4,
-      size.height + 24,
-      size.width * .72,
-      size.height - 20,
-    )
-    ..quadraticBezierTo(
-      size.width * .88,
-      size.height - 48,
-      size.width,
-      size.height - 24,
-    )
-    ..lineTo(size.width, 0)
-    ..close();
-  @override
-  bool shouldReclip(covariant _DetailWaveClipper oldClipper) => false;
 }
