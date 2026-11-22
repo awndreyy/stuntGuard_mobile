@@ -433,7 +433,7 @@ class _ManageChildrenScreenState extends State<ManageChildrenScreen> {
                             physics: const NeverScrollableScrollPhysics(),
                             padding: EdgeInsets.zero,
                             itemCount: filtered.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: 16),
                             itemBuilder: (context, index) {
                               final child = filtered[index];
