@@ -27,6 +27,7 @@ class AuthService {
       }
 
       await _storage.write(key: 'auth_token', value: token);
+      await _saveLocalAccountId(data['user']);
 
       return data;
     }
@@ -65,9 +66,33 @@ class AuthService {
     return _storage.read(key: 'auth_token');
   }
 
+// Simpan ID akun lokal
+  Future<void> _saveLocalAccountId(Object? user) async {
+    if (user is! Map) return;
+    final id = user['id_user'] ?? user['id'];
+    if (id != null && id.toString().isNotEmpty) {
+      await _storage.write(key: 'local_account_id', value: id.toString());
+    }
+  }
+
+  /// ID pengguna untuk memisahkan data SQLite antarakun.
+  Future<String> localAccountId() async {
+    final stored = await _storage.read(key: 'local_account_id');
+    if (stored != null && stored.isNotEmpty) return stored;
+    final user = await restoreSession();
+    if (user == null) throw Exception('Silakan login untuk membuka riwayat.');
+    final id = user['id_user'] ?? user['id'];
+    if (id == null || id.toString().isEmpty) {
+      throw Exception('Identitas akun tidak ditemukan.');
+    }
+    await _storage.write(key: 'local_account_id', value: id.toString());
+    return id.toString();
+  }
+
   // Hapus token dari perangkat.
   Future<void> clearToken() async {
     await _storage.delete(key: 'auth_token');
+    await _storage.delete(key: 'local_account_id');
   }
 
   // Pulihkan sesi dan ambil data pengguna dari server.
@@ -103,6 +128,7 @@ class AuthService {
       throw Exception('Data pengguna dari server tidak valid.');
     }
 
+    await _saveLocalAccountId(user);
     return Map<String, dynamic>.from(user);
   }
 
@@ -122,6 +148,7 @@ class AuthService {
     }
 
     await _storage.delete(key: 'auth_token');
+    await _storage.delete(key: 'local_account_id');
   }
 
   Map<String, dynamic> _parseResponse(String body) {

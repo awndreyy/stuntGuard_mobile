@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../models/balita.dart';
+import '../../models/mandiri_record.dart';
+import '../../services/mandiri_history_service.dart';
+import 'mandiri_history_screen.dart';
 import '../../services/balita_service.dart';
 import '../../services/pengukuran_service.dart';
 import '../../theme/sg_theme.dart';
@@ -22,6 +25,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   final lila = TextEditingController();
   final _balitaService = BalitaService();
   final _pengukuranService = PengukuranService();
+  final _historyService = MandiriHistoryService();
   List<Balita> _children = [];
   String? _selectedChildId;
   DateTime get _measurementDate => DateUtils.dateOnly(DateTime.now());
@@ -31,6 +35,8 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   String? _loadError;
   bool _loadingChildren = true;
   bool _saving = false;
+  bool _savingLocal = false;
+  bool _savedLocally = false;
 
   @override
   void initState() {
@@ -85,6 +91,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
       _saving = true;
       _result = null;
       _resultUnavailable = false;
+      _savedLocally = false;
     });
     try {
       final response = await _pengukuranService.calculateForChild(
@@ -106,9 +113,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result == null
-                ? 'Server tidak mengirimkan hasil WHO.'
-                : 'Perhitungan WHO berhasil. Data tidak disimpan.',
+            result == null ? 'Hasil pengecekan belum tersedia. Silakan coba lagi.' : 'Pengecekan selesai! Lihat hasilnya di bawah.',
           ),
         ),
       );
@@ -117,6 +122,48 @@ class _CalculatorPageState extends State<CalculatorScreen> {
       setState(() => _saving = false);
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(_messageFromError(error))));
+    }
+  }
+
+  Future<void> _saveToLocalHistory() async {
+    final child = _selectedChild;
+    final result = _result;
+    if (child == null || result == null || _savingLocal || _savedLocally){
+      return;
+    }
+    setState(() => _savingLocal = true);
+    try {
+      final accountId = await _historyService.accountId();
+      await _historyService.save(
+        MandiriRecord(
+          accountId: accountId,
+          childId: child.id,
+          childName: child.nama,
+          gender: child.jenisKelamin,
+          measuredAt: _measurementDate,
+          weight: _parseNumber(weight.text),
+          height: _parseNumber(height.text),
+          bodyPosition: _bodyPosition,
+          headCircumference: _parseOptionalNumber(headCircumference.text),
+          lila: _parseOptionalNumber(lila.text),
+          result: Map<String, dynamic>.from(result),
+        ),
+      );
+      if (!mounted) return;
+      setState(() => _savedLocally = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Berhasil disimpan! Kamu bisa melihatnya lagi di Riwayat Mandiri.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(_messageFromError(error))));
+    } finally {
+      if (mounted) setState(() => _savingLocal = false);
     }
   }
 
@@ -130,8 +177,19 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   @override
   Widget build(BuildContext context) => ScreenContent(
     title: 'Kalkulator Gizi',
-    subtitle: 'Hitung Z-score WHO tanpa menyimpan pengukuran ke database.',
+    subtitle: 'Cek pertumbuhan si kecil dengan mudah menggunakan standar WHO.',
     children: [
+      Align(
+        alignment: Alignment.centerRight,
+        child: OutlinedButton.icon(
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const MandiriHistoryScreen()),
+          ),
+          icon: const Icon(Icons.history),
+          label: const Text('Riwayat Mandiri'),
+        ),
+      ),
+      const SizedBox(height: 12),
       if (_loadingChildren)
         const SurfaceCard(
           child: Center(
@@ -200,6 +258,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                           }
                           _result = null;
                           _resultUnavailable = false;
+                          _savedLocally = false;
                         }),
                 ),
                 const SizedBox(height: 16),
@@ -238,6 +297,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                   onChanged: (_) => setState(() {
                     _result = null;
                     _resultUnavailable = false;
+                    _savedLocally = false;
                   }),
                 ),
                 const SizedBox(height: 12),
@@ -260,6 +320,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                   onChanged: (_) => setState(() {
                     _result = null;
                     _resultUnavailable = false;
+                    _savedLocally = false;
                   }),
                 ),
                 const SizedBox(height: 12),
@@ -283,6 +344,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                           _bodyPosition = value ?? _bodyPosition;
                           _result = null;
                           _resultUnavailable = false;
+                          _savedLocally = false;
                         }),
                 ),
                 const SizedBox(height: 18),
@@ -310,6 +372,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                   onChanged: (_) => setState(() {
                     _result = null;
                     _resultUnavailable = false;
+                    _savedLocally = false;
                   }),
                 ),
                 const SizedBox(height: 12),
@@ -332,6 +395,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                   onChanged: (_) => setState(() {
                     _result = null;
                     _resultUnavailable = false;
+                    _savedLocally = false;
                   }),
                 ),
                 const SizedBox(height: 16),
@@ -358,6 +422,25 @@ class _CalculatorPageState extends State<CalculatorScreen> {
       if (_result != null) ...[
         const SizedBox(height: 16),
         WhoResultCard(result: _result!),
+        const SizedBox(height: 12),
+        FilledButton.icon(
+          onPressed: _savingLocal || _savedLocally ? null : _saveToLocalHistory,
+          icon: Icon(
+            _savedLocally ? Icons.check_circle_outline : Icons.save_outlined,
+          ),
+          label: Text(
+            _savingLocal
+                ? 'Menyimpan...'
+                : _savedLocally
+                ? 'Tersimpan di HP'
+                : 'Simpan ke Riwayat Mandiri',
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Riwayat ini hanya disimpan pada perangkat dan tidak memengaruhi pengukuran resmi petugas.',
+          style: TextStyle(color: SG.muted, fontSize: 12),
+        ),
       ],
       if (_resultUnavailable) ...[
         const SizedBox(height: 16),
@@ -454,7 +537,7 @@ Map<String, dynamic>? _extractCalculationResult(Map<String, dynamic> response) {
       result['posisi_badan'] = measurement['posisi_badan'];
     }
     result['catatan'] =
-        'Hasil hanya ditampilkan saat ini dan tidak disimpan ke database.';
+        'Hasil pengecekan mandiri, bukan pengukuran resmi petugas.';
     return result;
   }
 
