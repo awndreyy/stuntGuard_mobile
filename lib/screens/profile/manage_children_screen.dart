@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../models/balita.dart';
 import '../../services/balita_service.dart';
+import 'widgets/profile_header.dart';
 
 class ManageChildrenScreen extends StatefulWidget {
   const ManageChildrenScreen({super.key});
@@ -122,7 +123,8 @@ class _ManageChildrenScreenState extends State<ManageChildrenScreen> {
 
   List<Balita> get _filteredChildren {
     return _children.where((child) {
-      final matchesSearch = _searchQuery.trim().isEmpty ||
+      final matchesSearch =
+          _searchQuery.trim().isEmpty ||
           child.nama.toLowerCase().contains(_searchQuery.trim().toLowerCase());
       if (!matchesSearch) return false;
 
@@ -159,14 +161,13 @@ class _ManageChildrenScreenState extends State<ManageChildrenScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Curved Crimson-Magenta Gradient Hero Banner
-                  const _ModernHeroBanner(
-                    badgeText: 'Kelola Anak',
-                    headline: 'Data Anak',
-                    pillText: 'Si Kecil Terpantau!',
-                    subtitle:
-                        'Pantau tumbuh kembang dan riwayat gizi si kecil dalam satu tempat.',
-                    bottomPadding: 40,
+                  const ProfileHeader(
+                    badge: 'Kelola Anak',
+                    title: 'Data Anak',
+                    highlight: 'Si Kecil Terpantau!',
+                    description: 'Pantau tumbuh kembang dan riwayat gizi si kecil dalam satu tempat.',
+                    showBackButton: true,
+                    showBranding: false,
                   ),
 
                   // Main Content Area
@@ -713,10 +714,7 @@ class _AttributeRow extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF6B5E62),
-                ),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF6B5E62)),
               ),
             ],
           ),
@@ -870,8 +868,7 @@ class _ChildFormScreenState extends State<_ChildFormScreen> {
                   badgeText: isEdit ? 'Ubah Data' : 'Tambah Anak',
                   headline: isEdit ? 'Perbarui,' : 'Daftarkan,',
                   pillText: 'Data Si Kecil',
-                  subtitle:
-                      'Lengkapi informasi anak untuk pantauan tumbuh kembang dan MPASI.',
+                  subtitle: 'Lengkapi informasi anak untuk pantauan tumbuh kembang dan MPASI.',
                   bottomPadding: 48,
                 ),
 
@@ -933,8 +930,8 @@ class _ChildFormScreenState extends State<_ChildFormScreen> {
                                     ),
                                 validator: (value) =>
                                     (value?.trim().length ?? 0) < 3
-                                        ? 'Nama minimal 3 karakter.'
-                                        : null,
+                                    ? 'Nama minimal 3 karakter.'
+                                    : null,
                               ),
 
                               const SizedBox(height: 16),
@@ -960,9 +957,11 @@ class _ChildFormScreenState extends State<_ChildFormScreen> {
                                   fontSize: 16,
                                   color: _onSurface,
                                 ),
-                                decoration:
-                                    _modernInputDecoration('NIK (opsional)'),
-                                validator: (value) => value != null &&
+                                decoration: _modernInputDecoration(
+                                  'NIK (opsional)',
+                                ),
+                                validator: (value) =>
+                                    value != null &&
                                         value.isNotEmpty &&
                                         value.length != 16
                                     ? 'NIK harus 16 digit.'
@@ -991,8 +990,9 @@ class _ChildFormScreenState extends State<_ChildFormScreen> {
                                   fontSize: 16,
                                   color: _onSurface,
                                 ),
-                                decoration:
-                                    _modernInputDecoration('Jenis Kelamin'),
+                                decoration: _modernInputDecoration(
+                                  'Jenis Kelamin',
+                                ),
                                 items: const [
                                   DropdownMenuItem(
                                     value: 'Laki-laki',
@@ -1005,8 +1005,9 @@ class _ChildFormScreenState extends State<_ChildFormScreen> {
                                 ],
                                 onChanged: (value) =>
                                     setState(() => _gender = value),
-                                validator: (value) =>
-                                    value == null ? 'Pilih jenis kelamin.' : null,
+                                validator: (value) => value == null
+                                    ? 'Pilih jenis kelamin.'
+                                    : null,
                               ),
 
                               const SizedBox(height: 20),
