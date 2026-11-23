@@ -1,12 +1,14 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
+import 'widgets/profile_header.dart';
 
 class PersonalDataScreen extends StatelessWidget {
   final Map<String, dynamic> user;
 
   const PersonalDataScreen({super.key, required this.user});
 
-  static const Color _primaryContainer = Color(0xFFF7E5EA);
   static const Color _onPrimaryContainer = Color(0xFF701230);
   static const Color _surface = Color(0xFFFFFDF9);
   static const Color _surfaceContainer = Color(0xFFFFFFFF);
@@ -30,182 +32,14 @@ class PersonalDataScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Curved Crimson-Magenta Gradient Hero Banner
-                Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: [0.0, 0.78, 0.92, 1.0],
-                          colors: [
-                            Color(0xEB8A153B),
-                            Color(0xE0981840),
-                            Color(0x73DC356E),
-                            Color(0x47F7E5EA),
-                          ],
-                        ),
-                      ),
-                      child: SafeArea(
-                        bottom: false,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 48),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Top Brand & Navigation Row
-                              _EntranceAnim(
-                                delayMs: 0,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Material(
-                                          color: const Color(0x26FFFFFF),
-                                          shape: const CircleBorder(),
-                                          child: InkWell(
-                                            customBorder: const CircleBorder(),
-                                            onTap: () => Navigator.maybePop(context),
-                                            child: const SizedBox(
-                                              width: 36,
-                                              height: 36,
-                                              child: Icon(
-                                                Icons.arrow_back,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          width: 36,
-                                          height: 36,
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: BoxDecoration(
-                                            color: _surfaceContainer,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Image.asset(
-                                            'assets/images/logo-StuntGuard.png',
-                                            fit: BoxFit.contain,
-                                            excludeFromSemantics: true,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        const Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'StuntGuard',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.white,
-                                                height: 1.2,
-                                              ),
-                                            ),
-                                            Text(
-                                              'Jember Bebas Stunting',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w500,
-                                                color: Color(0xD9FFFFFF),
-                                                height: 1.2,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: _primaryContainer,
-                                        borderRadius: BorderRadius.circular(999),
-                                      ),
-                                      child: const Text(
-                                        'Data Pribadi',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: _onPrimaryContainer,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // Hero Headline
-                              const _EntranceAnim(
-                                delayMs: 0,
-                                child: Text(
-                                  'Informasi',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    letterSpacing: -0.15,
-                                    height: 1.28,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              _EntranceAnim(
-                                delayMs: 90,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: _primaryContainer,
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: const Text(
-                                    'Akun Orang Tua',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: _onPrimaryContainer,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const _EntranceAnim(
-                                delayMs: 60,
-                                child: Text(
-                                  'Detail akun yang terdaftar pada layanan StuntGuard.',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.white,
-                                    height: 1.42,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Layered Curved Wave Transition
-                    const Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: -1,
-                      child: SizedBox(
-                        height: 36,
-                        width: double.infinity,
-                        child: CustomPaint(painter: _HeaderWavePainter()),
-                      ),
-                    ),
-                  ],
+                const ProfileHeader(
+                  badge: 'Data Pribadi',
+                  title: 'Informasi',
+                  highlight: 'Akun Orang Tua',
+                  description:
+                      'Detail akun yang terdaftar pada layanan StuntGuard.',
+                  showBackButton: true,
+                  showBranding: false,
                 ),
 
                 // Personal Data Card
@@ -242,7 +76,11 @@ class PersonalDataScreen extends StatelessWidget {
                             label: 'Nama',
                             value: name,
                           ),
-                          const Divider(height: 1, thickness: 1, color: _outlineVariant),
+                          const Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: _outlineVariant,
+                          ),
                           _DataRow(
                             icon: Icons.mail_outline,
                             iconBg: _surface,
@@ -376,47 +214,6 @@ class _EntranceAnimState extends State<_EntranceAnim> {
       ),
     );
   }
-}
-
-class _HeaderWavePainter extends CustomPainter {
-  const _HeaderWavePainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    final backPaint = Paint()
-      ..color = const Color(0x99F7E5EA)
-      ..style = PaintingStyle.fill;
-
-    final backPath = Path()
-      ..moveTo(0, h * (16 / 44))
-      ..cubicTo(w * (110 / 480), h * (38 / 44), w * (220 / 480), h * (2 / 44), w * (340 / 480), h * (16 / 44))
-      ..cubicTo(w * (400 / 480), h * (23 / 44), w * (448 / 480), h * (28 / 44), w, h * (18 / 44))
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
-
-    canvas.drawPath(backPath, backPaint);
-
-    final frontPaint = Paint()
-      ..color = const Color(0xFFFFFDF9)
-      ..style = PaintingStyle.fill;
-
-    final frontPath = Path()
-      ..moveTo(0, h * (24 / 44))
-      ..cubicTo(w * (120 / 480), h * (42 / 44), w * (230 / 480), h * (10 / 44), w * (350 / 480), h * (24 / 44))
-      ..cubicTo(w * (410 / 480), h * (31 / 44), w * (452 / 480), h * (34 / 44), w, h * (26 / 44))
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
-
-    canvas.drawPath(frontPath, frontPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _DotPatternPainter extends CustomPainter {

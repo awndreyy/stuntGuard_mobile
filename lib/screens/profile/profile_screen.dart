@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../profile/manage_children_screen.dart';
 import 'personal_data_screen.dart';
+import 'widgets/profile_header.dart';
 
 class ProfileScreen extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -18,7 +20,7 @@ class ProfileScreen extends StatelessWidget {
   static const Color _primary = Color(0xFFA8224A);
   static const Color _primaryContainer = Color(0xFFF7E5EA);
   static const Color _onPrimaryContainer = Color(0xFF701230);
-  static const Color _surface = Color(0xFFFFFDF9);
+  static const Color _surface = Color(0xFFFFF7F4);
   static const Color _surfaceContainer = Color(0xFFFFFFFF);
   static const Color _onSurface = Color(0xFF1F1A1C);
   static const Color _onSurfaceVariant = Color(0xFF6B5E62);
@@ -47,152 +49,10 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Curved Crimson-Magenta Gradient Hero Banner
-                Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: [0.0, 0.78, 0.92, 1.0],
-                          colors: [
-                            Color(0xEB8A153B), // rgba(138, 21, 59, 0.92)
-                            Color(0xE0981840), // rgba(152, 24, 64, 0.88)
-                            Color(0x73DC356E), // rgba(220, 53, 110, 0.45)
-                            Color(0x47F7E5EA), // rgba(247, 229, 234, 0.28)
-                          ],
-                        ),
-                      ),
-                      child: SafeArea(
-                        bottom: false,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 48),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Brand Row
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 36,
-                                        height: 36,
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
-                                          color: _surfaceContainer,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Image.asset(
-                                          'assets/images/logo-StuntGuard.png',
-                                          fit: BoxFit.contain,
-                                          excludeFromSemantics: true,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'StuntGuard',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                              height: 1.2,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Jember Bebas Stunting',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(0xD9FFFFFF),
-                                              height: 1.2,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: _primaryContainer,
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    child: const Text(
-                                      'Profil',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: _onPrimaryContainer,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // Hero Headline
-                              const Text(
-                                'Profil Akun',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: -0.2,
-                                  height: 1.28,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _primaryContainer,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(
-                                  '$firstName & Keluarga',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: _onPrimaryContainer,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Kelola akun dan data anak dalam satu tempat.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.white,
-                                  height: 1.42,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Layered Curved Wave Transition
-                    const Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: -1,
-                      child: SizedBox(
-                        height: 36,
-                        width: double.infinity,
-                        child: CustomPaint(painter: _HeaderWavePainter()),
-                      ),
-                    ),
-                  ],
+                ProfileHeader(
+                  title: 'Profil Akun',
+                  highlight: '$firstName & Keluarga',
+                  description: 'Kelola akun dan data anak dalam satu tempat.',
                 ),
 
                 // Main Area dengan gradasi pink lembut di bagian atas (main-pink-fade)
@@ -293,12 +153,17 @@ class ProfileScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const ManageChildrenScreen(),
+                                    builder: (_) =>
+                                        const ManageChildrenScreen(),
                                   ),
                                 );
                               },
                             ),
-                            const Divider(height: 1, thickness: 1, color: _outlineVariant),
+                            const Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: _outlineVariant,
+                            ),
                             _ModernProfileMenu(
                               icon: Icons.manage_accounts_outlined,
                               iconBg: _surface,
@@ -309,7 +174,8 @@ class ProfileScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => PersonalDataScreen(user: user),
+                                    builder: (_) =>
+                                        PersonalDataScreen(user: user),
                                   ),
                                 );
                               },
@@ -339,26 +205,38 @@ class ProfileScreen extends StatelessWidget {
                           onTap: isLoggingOut
                               ? () {}
                               : () {
-                                  showDialog<void>(
+                                  showDialog<bool>(
                                     context: context,
                                     builder: (dialogContext) => AlertDialog(
-                                      title: const Text('Keluar dari StunGuard?'),
-                                      content: const Text('Sesi login akan diakhiri.'),
+                                      title: const Text(
+                                        'Keluar dari StuntGuard?',
+                                      ),
+                                      content: const Text(
+                                        'Apakah Anda yakin ingin keluar dari akun? '
+                                        'Sesi login Anda akan diakhiri.',
+                                      ),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.pop(dialogContext),
+                                          onPressed: () => Navigator.pop(
+                                            dialogContext,
+                                            false,
+                                          ),
                                           child: const Text('Batal'),
                                         ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(dialogContext);
-                                            onLogout();
-                                          },
+                                        FilledButton(
+                                          onPressed: () => Navigator.pop(
+                                            dialogContext,
+                                            true,
+                                          ),
                                           child: const Text('Keluar'),
                                         ),
                                       ],
                                     ),
-                                  );
+                                  ).then((confirmed) {
+                                    if (confirmed == true) {
+                                      onLogout();
+                                    }
+                                  });
                                 },
                         ),
                       ),
@@ -449,77 +327,6 @@ class _ModernProfileMenu extends StatelessWidget {
       ),
     );
   }
-}
-
-class _HeaderWavePainter extends CustomPainter {
-  const _HeaderWavePainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Gelombang belakang (#F7E5EA dengan opacity 60%)
-    final backPaint = Paint()
-      ..color = const Color(0x99F7E5EA)
-      ..style = PaintingStyle.fill;
-
-    final backPath = Path()
-      ..moveTo(0, h * (16 / 44))
-      ..cubicTo(
-        w * (110 / 480),
-        h * (38 / 44),
-        w * (220 / 480),
-        h * (2 / 44),
-        w * (340 / 480),
-        h * (16 / 44),
-      )
-      ..cubicTo(
-        w * (400 / 480),
-        h * (23 / 44),
-        w * (448 / 480),
-        h * (28 / 44),
-        w,
-        h * (18 / 44),
-      )
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
-
-    canvas.drawPath(backPath, backPaint);
-
-    // Gelombang depan (#FFFDF9)
-    final frontPaint = Paint()
-      ..color = const Color(0xFFFFFDF9)
-      ..style = PaintingStyle.fill;
-
-    final frontPath = Path()
-      ..moveTo(0, h * (24 / 44))
-      ..cubicTo(
-        w * (120 / 480),
-        h * (42 / 44),
-        w * (230 / 480),
-        h * (10 / 44),
-        w * (350 / 480),
-        h * (24 / 44),
-      )
-      ..cubicTo(
-        w * (410 / 480),
-        h * (31 / 44),
-        w * (452 / 480),
-        h * (34 / 44),
-        w,
-        h * (26 / 44),
-      )
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
-
-    canvas.drawPath(frontPath, frontPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _DotPatternPainter extends CustomPainter {

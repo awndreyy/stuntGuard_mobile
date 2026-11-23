@@ -166,9 +166,7 @@ class MpasiHeader extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 5),
-                                Transform.rotate(
-                                  angle: -0.035,
-                                  child: Container(
+                                Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 8,
                                       vertical: 6,
@@ -190,7 +188,6 @@ class MpasiHeader extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                ),
                                 const SizedBox(height: 12),
                                 Text(
                                   'Temukan menu bergizi sesuai usia '
