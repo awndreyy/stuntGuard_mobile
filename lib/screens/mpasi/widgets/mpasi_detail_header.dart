@@ -11,7 +11,12 @@ class _HeaderColors {
 
 class MpasiDetailHeader extends StatelessWidget {
   final Mpasi resep;
-  const MpasiDetailHeader({super.key, required this.resep});
+  final bool offlineOnly;
+  const MpasiDetailHeader({
+    super.key,
+    required this.resep,
+    this.offlineOnly = false,
+  });
 
   @override
   Widget build(BuildContext context) => ClipPath(
@@ -81,6 +86,8 @@ class MpasiDetailHeader extends StatelessWidget {
                             color: _HeaderColors.pale,
                             child: MpasiRecipeImage(
                               url: resep.gambarUrl,
+                              localBytes: resep.gambarLokal,
+                              offlineOnly: offlineOnly,
                               size: 72,
                             ),
                           ),
