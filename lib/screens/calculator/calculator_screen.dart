@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/balita.dart';
 import '../../models/mandiri_record.dart';
 import '../../services/mandiri_history_service.dart';
 import 'mandiri_history_screen.dart';
+import '../../services/auth_service.dart';
 import '../../services/balita_service.dart';
 import '../../services/pengukuran_service.dart';
 import '../../theme/sg_theme.dart';
@@ -11,7 +13,9 @@ import '../../widgets/sg_components.dart';
 import '../../widgets/who_result_card.dart';
 
 class CalculatorScreen extends StatefulWidget {
-  const CalculatorScreen({super.key});
+  const CalculatorScreen({super.key, this.isActive = true});
+
+  final bool isActive;
 
   @override
   State<CalculatorScreen> createState() => _CalculatorPageState();
@@ -26,6 +30,10 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   final _balitaService = BalitaService();
   final _pengukuranService = PengukuranService();
   final _historyService = MandiriHistoryService();
+  final _authService = AuthService();
+  final _preferences = SharedPreferencesAsync();
+
+  String _lastChildKey(String accountId) => 'last_selected_child_$accountId';
   List<Balita> _children = [];
   String? _selectedChildId;
   DateTime get _measurementDate => DateUtils.dateOnly(DateTime.now());
@@ -45,6 +53,40 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant CalculatorScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _syncLastSelectedChild();
+    }
+  }
+
+  Future<void> _syncLastSelectedChild() async {
+    try {
+      final accountId = await _authService.localAccountId();
+      final savedId = await _preferences.getString(_lastChildKey(accountId));
+      if (!mounted || _loadingChildren || _children.isEmpty) return;
+
+      final nextId = _children.any((child) => child.id == savedId)
+          ? savedId
+          : _children.first.id;
+      if (_selectedChildId == nextId) return;
+
+      setState(() {
+        _selectedChildId = nextId;
+        final child = _selectedChild;
+        if (child != null) {
+          _bodyPosition = _positionFor(child, _measurementDate);
+        }
+        _result = null;
+        _resultUnavailable = false;
+        _savedLocally = false;
+      });
+    } catch (error) {
+      debugPrint('Gagal memuat anak terakhir di kalkulator: $error');
+    }
+  }
+
+  @override
   void dispose() {
     weight.dispose();
     height.dispose();
@@ -60,13 +102,17 @@ class _CalculatorPageState extends State<CalculatorScreen> {
     });
 
     try {
+      final accountId = await _authService.localAccountId();
       final children = await _balitaService.fetchChildren();
+      final rememberedId = await _preferences.getString(
+        _lastChildKey(accountId),
+      );
       if (!mounted) return;
       setState(() {
         _children = children;
-        if (!_children.any((child) => child.id == _selectedChildId)) {
-          _selectedChildId = _children.isEmpty ? null : _children.first.id;
-        }
+        _selectedChildId = _children.any((child) => child.id == rememberedId)
+            ? rememberedId
+            : (_children.isEmpty ? null : _children.first.id);
         final child = _selectedChild;
         if (child != null) {
           _bodyPosition = _positionFor(child, _measurementDate);
@@ -79,6 +125,16 @@ class _CalculatorPageState extends State<CalculatorScreen> {
         _loadingChildren = false;
         _loadError = _messageFromError(error);
       });
+    }
+  }
+
+  Future<void> _rememberSelectedChild(String childId) async {
+    try {
+      final accountId = await _authService.localAccountId();
+      await _preferences.setString(_lastChildKey(accountId), childId);
+    } catch (error) {
+      // Pilihan tetap berubah di layar meski penyimpanan lokal gagal.
+      debugPrint('Tidak dapat menyimpan pilihan anak terakhir: $error');
     }
   }
 
@@ -113,7 +169,9 @@ class _CalculatorPageState extends State<CalculatorScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result == null ? 'Hasil pengecekan belum tersedia. Silakan coba lagi.' : 'Pengecekan selesai! Lihat hasilnya di bawah.',
+            result == null
+                ? 'Hasil pengecekan belum tersedia. Silakan coba lagi.'
+                : 'Pengecekan selesai! Lihat hasilnya di bawah.',
           ),
         ),
       );
@@ -128,7 +186,7 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   Future<void> _saveToLocalHistory() async {
     final child = _selectedChild;
     final result = _result;
-    if (child == null || result == null || _savingLocal || _savedLocally){
+    if (child == null || result == null || _savingLocal || _savedLocally) {
       return;
     }
     setState(() => _savingLocal = true);
@@ -247,19 +305,24 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                       .toList(),
                   onChanged: _saving
                       ? null
-                      : (value) => setState(() {
-                          _selectedChildId = value;
-                          final child = _selectedChild;
-                          if (child != null) {
-                            _bodyPosition = _positionFor(
-                              child,
-                              _measurementDate,
-                            );
+                      : (value) {
+                          setState(() {
+                            _selectedChildId = value;
+                            final child = _selectedChild;
+                            if (child != null) {
+                              _bodyPosition = _positionFor(
+                                child,
+                                _measurementDate,
+                              );
+                            }
+                            _result = null;
+                            _resultUnavailable = false;
+                            _savedLocally = false;
+                          });
+                          if (value != null) {
+                            _rememberSelectedChild(value);
                           }
-                          _result = null;
-                          _resultUnavailable = false;
-                          _savedLocally = false;
-                        }),
+                        },
                 ),
                 const SizedBox(height: 16),
                 const Text(

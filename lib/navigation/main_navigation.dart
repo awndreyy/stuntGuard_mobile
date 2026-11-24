@@ -72,7 +72,7 @@ class _MainNavigationState extends State<MainNavigation> {
         onOpenProfile: () => _selectTab(4),
       ),
       const MpasiScreen(),
-      const CalculatorScreen(),
+      CalculatorScreen(isActive: selected == 2),
       EducationScreen(isActive: selected == 3),
       ProfileScreen(
         user: widget.user,

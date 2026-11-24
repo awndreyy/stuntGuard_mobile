@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/balita.dart';
 import '../../models/informasi.dart';
 import '../../models/pengukuran.dart';
 import 'measurement_detail_screen.dart';
+import '../../services/auth_service.dart';
 import '../../services/balita_service.dart';
 import '../../services/informasi_service.dart';
 import '../../services/pengukuran_service.dart';
@@ -55,6 +57,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _authService = AuthService();
+  final _preferences = SharedPreferencesAsync();
+
+  String _lastChildKey(String accountId) => 'last_selected_child_$accountId';
+
+  Future<void> _rememberSelectedChild(String childId) async {
+    try {
+      final accountId = await _authService.localAccountId();
+      await _preferences.setString(_lastChildKey(accountId), childId);
+    } catch (error) {
+      debugPrint('Tidak dapat menyimpan pilihan anak terakhir: $error');
+    }
+  }
+
   final List<Balita> _children = <Balita>[];
   List<Pengukuran> _measurements = <Pengukuran>[];
   List<Informasi> _articles = <Informasi>[];
@@ -119,9 +135,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final children = await widget.balitaService.fetchChildren();
+      String? rememberedId;
+      try {
+        final accountId = await _authService.localAccountId();
+        rememberedId = await _preferences.getString(_lastChildKey(accountId));
+      } catch (error) {
+        debugPrint('Tidak dapat membaca pilihan anak terakhir: $error');
+      }
       if (!mounted) return;
 
-      final nextActive = children.isNotEmpty ? children.first : null;
+      final previousChildId = _activeChild?.id;
+      final preferredChildId = rememberedId ?? previousChildId;
+      final nextActive =
+          children.where((child) => child.id == preferredChildId).firstOrNull ??
+          (children.isNotEmpty ? children.first : null);
       setState(() {
         _children
           ..clear()
@@ -405,6 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _loading = true;
             _error = null;
           });
+          _rememberSelectedChild(child.id);
           _loadMeasurementsForChild(child.id);
         },
         itemBuilder: (_) => [
