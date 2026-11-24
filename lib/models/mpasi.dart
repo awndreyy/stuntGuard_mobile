@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class Mpasi {
   final String id;
   final String nama;
@@ -5,6 +7,7 @@ class Mpasi {
   final int waktuMenit;
   final int jumlahPorsi;
   final String? gambarUrl;
+  final Uint8List? gambarLokal;
   final List<String> gizi;
   final List<String> bahan;
   final List<String> langkah;
@@ -16,6 +19,7 @@ class Mpasi {
     required this.waktuMenit,
     required this.jumlahPorsi,
     required this.gambarUrl,
+    this.gambarLokal,
     required this.gizi,
     required this.bahan,
     required this.langkah,

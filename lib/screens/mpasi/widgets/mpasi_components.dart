@@ -5,7 +5,7 @@ import '../../../widgets/mpasi_recipe_image.dart';
 
 // Komponen bersama untuk halaman daftar resep MPASI.
 
-// WARNA 
+// WARNA
 class MpasiColors {
   static const primary = Color(0xFFC8103D);
   static const dark = Color(0xFF8B1038);
@@ -171,14 +171,20 @@ class MpasiCategoryFilter extends StatelessWidget {
   }
 }
 
-
 // Recipe Card
 class MpasiRecipeCard extends StatelessWidget {
   final Mpasi resep;
   final VoidCallback onTap;
+  final bool isSaved;
+  final bool offlineOnly;
+  final VoidCallback? onToggleSave;
   const MpasiRecipeCard({
+    super.key,
     required this.resep,
-    required this.onTap
+    required this.onTap,
+    this.isSaved = false,
+    this.offlineOnly = false,
+    this.onToggleSave,
   });
 
   @override
@@ -200,7 +206,32 @@ class MpasiRecipeCard extends StatelessWidget {
                   aspectRatio: 1,
                   child: ColoredBox(
                     color: MpasiColors.pale,
-                    child: MpasiRecipeImage(url: resep.gambarUrl, size: 48),
+                    child: MpasiRecipeImage(
+                      url: resep.gambarUrl,
+                      localBytes: resep.gambarLokal,
+                      offlineOnly: offlineOnly,
+                      size: 48,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Material(
+                    color: Colors.white,
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      tooltip: isSaved
+                          ? 'Hapus dari tersimpan'
+                          : 'Simpan resep',
+                      onPressed: onToggleSave,
+                      color: MpasiColors.primary,
+                      icon: Icon(
+                        isSaved
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_border_rounded,
+                      ),
+                    ),
                   ),
                 ),
                 Positioned(

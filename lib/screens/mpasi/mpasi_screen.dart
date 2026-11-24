@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/mpasi.dart';
 import '../../services/mpasi_service.dart';
+import '../../services/mpasi_favorite_service.dart';
 import '../login_screen.dart';
 import 'mpasi_detail_screen.dart';
 import 'widgets/mpasi_header.dart';
@@ -29,6 +30,14 @@ class _MpasiScreenState extends State<MpasiScreen> {
   ];
 
   final _service = MpasiService();
+  final _favorites = MpasiFavoriteService();
+  bool _showSaved = false;
+  bool _isLoadingSaved = false;
+  final List<Mpasi> _savedRecipes = [];
+  Set<String> _savedIds = {};
+  final Set<String> _savingIds = {};
+  String? _savedError;
+  int _savedLoadVersion = 0;
   final List<Mpasi> _recipes = [];
   Timer? _searchDebounce;
   bool _isLoading = true;
@@ -43,6 +52,104 @@ class _MpasiScreenState extends State<MpasiScreen> {
   void initState() {
     super.initState();
     _loadRecipes();
+    _refreshFavorites();
+  }
+
+  Future<void> _refreshFavorites() async {
+    try {
+      final ids = await _favorites.ids();
+      if (mounted) {
+        setState(() => _savedIds = ids);
+      }
+    } catch (error) {
+      debugPrint('Gagal membaca penanda resep tersimpan: $error');
+    }
+  }
+
+  Future<void> _loadSaved() async {
+    final request = ++_savedLoadVersion;
+    if (!mounted) return;
+    setState(() {
+      _isLoadingSaved = true;
+      _savedError = null;
+    });
+    try {
+      final recipes = await _favorites.list();
+      if (!mounted || request != _savedLoadVersion) return;
+      setState(() {
+        _savedRecipes
+          ..clear()
+          ..addAll(recipes);
+        _savedIds = recipes.map((r) => r.id).toSet();
+      });
+    } catch (error, stackTrace) {
+      debugPrint('Gagal memuat resep tersimpan: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted && request == _savedLoadVersion) {
+        setState(
+          () => _savedError =
+              'Resep simpanan belum bisa dibuka. Silakan coba lagi.',
+        );
+      }
+    } finally {
+      if (mounted && request == _savedLoadVersion) {
+        setState(() => _isLoadingSaved = false);
+      }
+    }
+  }
+
+  Future<void> _toggleFavorite(Mpasi recipe) async {
+    if (_savingIds.contains(recipe.id)) return;
+    setState(() => _savingIds.add(recipe.id));
+    try {
+      if (_savedIds.contains(recipe.id)) {
+        await _favorites.remove(recipe.id);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Resep telah dihapus dari daftar simpanan.'),
+          ),
+        );
+      } else {
+        await _favorites.save(recipe);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Resep berhasil disimpan. Kamu bisa membacanya kapan saja.',
+            ),
+          ),
+        );
+      }
+      // Muat langsung dari SQLite, bukan hanya mengandalkan state ikon.
+      await _loadSaved();
+      await _refreshFavorites();
+    } catch (error, stackTrace) {
+      debugPrint('Gagal memperbarui resep tersimpan: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Belum berhasil menyimpan perubahan. Silakan coba lagi.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _savingIds.remove(recipe.id));
+      }
+    }
+  }
+
+  void _switchTab(bool saved) {
+    setState(() => _showSaved = saved);
+    if (saved) {
+      _loadSaved();
+    } else {
+      _refreshFavorites();
+    }
   }
 
   void _scheduleSearch() {
@@ -60,7 +167,9 @@ class _MpasiScreenState extends State<MpasiScreen> {
   }
 
   Future<void> _loadRecipes({bool loadMore = false}) async {
-    if (loadMore && (_isLoading || _isLoadingMore || _nextPage == null)) return;
+    if (loadMore && (_isLoading || _isLoadingMore || _nextPage == null)) {
+      return;
+    }
     final version = ++_requestVersion;
     final page = loadMore ? _nextPage! : 1;
     const ageCodes = [null, '6-8', '9-11', '12-23'];
@@ -133,10 +242,13 @@ class _MpasiScreenState extends State<MpasiScreen> {
     super.dispose();
   }
 
-  void _openDetail(Mpasi resep) {
-    Navigator.of(context).push<void>(
+  Future<void> _openDetail(Mpasi resep) async {
+    await Navigator.of(context).push<void>(
       MaterialPageRoute(builder: (_) => MpasiDetailScreen(resep: resep)),
     );
+    if (!mounted) return;
+    await _refreshFavorites();
+    if (_showSaved) await _loadSaved();
   }
 
   void _selectCategory(int index) {
@@ -159,7 +271,11 @@ class _MpasiScreenState extends State<MpasiScreen> {
         color: MpasiColors.primary,
         onRefresh: () async {
           _searchDebounce?.cancel();
-          await _loadRecipes();
+          if (_showSaved) {
+            await _loadSaved();
+          } else {
+            await _loadRecipes();
+          }
         },
         child: ListView(
           key: const PageStorageKey('mpasi-list'),
@@ -175,171 +291,296 @@ class _MpasiScreenState extends State<MpasiScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      MpasiSearch(
-                        controller: _searchController,
-                        onChanged: _scheduleSearch,
-                        onSubmitted: () {
-                          _searchDebounce?.cancel();
-                          _loadRecipes();
-                        },
-                        onCleared: () {
-                          _searchDebounce?.cancel();
-                          _loadRecipes();
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Kategori Usia Anak',
-                        style: TextStyle(
-                          color: MpasiColors.ink,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      MpasiCategoryFilter(
-                        categories: _categories,
-                        selectedCategory: _selectedCategory,
-                        onSelected: _selectCategory,
-                      ),
-                      const SizedBox(height: 28),
-                      Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 12,
-                        runSpacing: 8,
-                        children: [
-                          const Text(
-                            'Pilihan Menu Utama',
-                            style: TextStyle(
-                              color: MpasiColors.ink,
-                              fontSize: 21,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -.5,
+                      if (!_showSaved) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: MpasiSearch(
+                                controller: _searchController,
+                                onChanged: _scheduleSearch,
+                                onSubmitted: () {
+                                  _searchDebounce?.cancel();
+                                  _loadRecipes();
+                                },
+                                onCleared: () {
+                                  _searchDebounce?.cancel();
+                                  _loadRecipes();
+                                },
+                              ),
                             ),
-                          ),
-                          Text(
-                            _isLoading ? 'Memuat resep...' : '$_total resep',
-                            style: const TextStyle(
-                              color: MpasiColors.muted,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      if (_isLoading)
-                        const Padding(
-                          padding: EdgeInsets.all(48),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: MpasiColors.primary,
-                            ),
-                          ),
-                        )
-                      else if (_error != null)
-                        _buildMessage(_error!, retry: true)
-                      else if (_recipes.isEmpty)
-                        _buildMessage(
-                          'Belum ada resep yang sesuai. Coba kata kunci atau kategori usia lainnya.',
-                          retry: false,
-                        )
-                      else
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final largeText =
-                                MediaQuery.textScalerOf(context).scale(14) > 21;
-                            final columns =
-                                largeText || constraints.maxWidth < 300
-                                ? 1
-                                : constraints.maxWidth >= 700
-                                ? 3
-                                : 2;
-                            final width =
-                                (constraints.maxWidth - (columns - 1) * 16) /
-                                columns;
-                            return Wrap(
-                              spacing: 16,
-                              runSpacing: 16,
-                              children: [
-                                for (final recipe in _recipes)
-                                  SizedBox(
-                                    width: width,
-                                    child: MpasiRecipeCard(
-                                      resep: recipe,
-                                      onTap: () => _openDetail(recipe),
+                            const SizedBox(width: 12),
+                            Tooltip(
+                              message: 'Resep tersimpan',
+                              child: Material(
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                  side: const BorderSide(
+                                    color: MpasiColors.border,
+                                  ),
+                                ),
+                                child: InkWell(
+                                  onTap: () => _switchTab(true),
+                                  borderRadius: BorderRadius.circular(18),
+                                  child: const SizedBox(
+                                    width: 54,
+                                    height: 54,
+                                    child: Icon(
+                                      Icons.bookmark_rounded,
+                                      color: MpasiColors.primary,
+                                      size: 25,
                                     ),
                                   ),
-                              ],
-                            );
-                          },
-                        ),
-                      if (_loadMoreError != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Text(
-                            _loadMoreError!,
-                            style: const TextStyle(
-                              color: MpasiColors.primary,
-                              fontSize: 13,
-                              height: 1.5,
-                            ),
-                          ),
-                        ),
-                      if (!_isLoading &&
-                          _error == null &&
-                          _nextPage != null) ...[
-                        const SizedBox(height: 28),
-                        OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: MpasiColors.primary,
-                            minimumSize: const Size.fromHeight(56),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 16,
-                            ),
-                            side: const BorderSide(color: MpasiColors.border),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          onPressed: _isLoadingMore
-                              ? null
-                              : () => _loadRecipes(loadMore: true),
-                          child: _isLoadingMore
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: MpasiColors.primary,
-                                  ),
-                                )
-                              : Text(
-                                  _loadMoreError != null
-                                      ? 'Coba Muat Lagi'
-                                      : 'Muat Lebih Banyak Resep',
                                 ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () => _switchTab(false),
+                              tooltip: 'Kembali ke semua resep',
+                              icon: const Icon(Icons.arrow_back_rounded),
+                              color: MpasiColors.primary,
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                side: const BorderSide(
+                                  color: MpasiColors.border,
+                                ),
+                                minimumSize: const Size(48, 48),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Text(
+                                'Resep Tersimpan',
+                                style: TextStyle(
+                                  color: MpasiColors.ink,
+                                  fontSize: 21,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
-                      if (!_isLoading && _error == null && _recipes.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: Text(
-                            'Menampilkan ${_recipes.length} dari $_total resep',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: MpasiColors.muted,
-                              fontSize: 12,
-                              height: 1.5,
-                            ),
+                      const SizedBox(height: 24),
+                      if (!_showSaved) ...[
+                        const Text(
+                          'Kategori Usia Anak',
+                          style: TextStyle(
+                            color: MpasiColors.ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        MpasiCategoryFilter(
+                          categories: _categories,
+                          selectedCategory: _selectedCategory,
+                          onSelected: _selectCategory,
+                        ),
+                        const SizedBox(height: 28),
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 12,
+                          runSpacing: 8,
+                          children: [
+                            const Text(
+                              'Pilihan Menu Utama',
+                              style: TextStyle(
+                                color: MpasiColors.ink,
+                                fontSize: 21,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -.5,
+                              ),
+                            ),
+                            Text(
+                              _isLoading ? 'Memuat resep...' : '$_total resep',
+                              style: const TextStyle(
+                                color: MpasiColors.muted,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        if (_isLoading)
+                          const Padding(
+                            padding: EdgeInsets.all(48),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: MpasiColors.primary,
+                              ),
+                            ),
+                          )
+                        else if (_error != null)
+                          _buildMessage(_error!, retry: true)
+                        else if (_recipes.isEmpty)
+                          _buildMessage(
+                            'Belum ada resep yang sesuai. Coba kata kunci atau kategori usia lainnya.',
+                            retry: false,
+                          )
+                        else
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final largeText =
+                                  MediaQuery.textScalerOf(context).scale(14) >
+                                  21;
+                              final columns =
+                                  largeText || constraints.maxWidth < 300
+                                  ? 1
+                                  : constraints.maxWidth >= 700
+                                  ? 3
+                                  : 2;
+                              final width =
+                                  (constraints.maxWidth - (columns - 1) * 16) /
+                                  columns;
+                              return Wrap(
+                                spacing: 16,
+                                runSpacing: 16,
+                                children: [
+                                  for (final recipe in _recipes)
+                                    SizedBox(
+                                      width: width,
+                                      child: MpasiRecipeCard(
+                                        resep: recipe,
+                                        onTap: () => _openDetail(recipe),
+                                        isSaved: _savedIds.contains(recipe.id),
+                                        onToggleSave:
+                                            _savingIds.contains(recipe.id)
+                                            ? null
+                                            : () => _toggleFavorite(recipe),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                        if (_loadMoreError != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: Text(
+                              _loadMoreError!,
+                              style: const TextStyle(
+                                color: MpasiColors.primary,
+                                fontSize: 13,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                        if (!_isLoading &&
+                            _error == null &&
+                            _nextPage != null) ...[
+                          const SizedBox(height: 28),
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: MpasiColors.primary,
+                              minimumSize: const Size.fromHeight(56),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                              side: const BorderSide(color: MpasiColors.border),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            onPressed: _isLoadingMore
+                                ? null
+                                : () => _loadRecipes(loadMore: true),
+                            child: _isLoadingMore
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: MpasiColors.primary,
+                                    ),
+                                  )
+                                : Text(
+                                    _loadMoreError != null
+                                        ? 'Coba Muat Lagi'
+                                        : 'Muat Lebih Banyak Resep',
+                                  ),
+                          ),
+                        ],
+                        if (!_isLoading &&
+                            _error == null &&
+                            _recipes.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: Text(
+                              'Menampilkan ${_recipes.length} dari $_total resep',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: MpasiColors.muted,
+                                fontSize: 12,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                      ] else ...[
+                        const Text(
+                          'Buka kembali resep favoritmu kapan saja, bahkan tanpa internet.',
+                          style: TextStyle(color: MpasiColors.muted),
+                        ),
+                        const SizedBox(height: 18),
+                        if (_isLoadingSaved)
+                          const Center(child: CircularProgressIndicator())
+                        else if (_savedError != null)
+                          _buildSavedMessage(_savedError!)
+                        else if (_savedRecipes.isEmpty)
+                          _buildSavedMessage(
+                            'Belum ada resep yang disimpan. Yuk, pilih resep favoritmu!',
+                          ),
+                        if (!_isLoadingSaved &&
+                            _savedError == null &&
+                            _savedRecipes.isNotEmpty)
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final largeText =
+                                  MediaQuery.textScalerOf(context).scale(14) >
+                                  21;
+                              final columns =
+                                  largeText || constraints.maxWidth < 300
+                                  ? 1
+                                  : constraints.maxWidth >= 700
+                                  ? 3
+                                  : 2;
+                              final width =
+                                  (constraints.maxWidth - (columns - 1) * 16) /
+                                  columns;
+                              return Wrap(
+                                spacing: 16,
+                                runSpacing: 16,
+                                children: [
+                                  for (final recipe in _savedRecipes)
+                                    SizedBox(
+                                      width: width,
+                                      child: MpasiRecipeCard(
+                                        resep: recipe,
+                                        isSaved: true,
+                                        onTap: () => _openDetail(recipe),
+                                        onToggleSave:
+                                            _savingIds.contains(recipe.id)
+                                            ? null
+                                            : () => _toggleFavorite(recipe),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                      ],
                     ],
                   ),
                 ),
@@ -377,6 +618,27 @@ class _MpasiScreenState extends State<MpasiScreen> {
             retry ? Icons.refresh_rounded : Icons.filter_alt_off_rounded,
           ),
           label: Text(retry ? 'Coba Lagi' : 'Reset Filter'),
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildSavedMessage(String message) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 36),
+    child: Column(
+      children: [
+        const Icon(
+          Icons.bookmark_border_rounded,
+          size: 40,
+          color: MpasiColors.primary,
+        ),
+        const SizedBox(height: 12),
+        Text(message, textAlign: TextAlign.center),
+        const SizedBox(height: 12),
+        TextButton.icon(
+          onPressed: _loadSaved,
+          icon: const Icon(Icons.refresh_rounded),
+          label: const Text('Muat Ulang'),
         ),
       ],
     ),

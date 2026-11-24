@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/mpasi.dart';
+import '../../services/mpasi_favorite_service.dart';
 import 'widgets/mpasi_detail_header.dart';
 
 class _DetailColors {
@@ -12,9 +13,78 @@ class _DetailColors {
   static const pale = Color(0xFFF7F9FC);
 }
 
-class MpasiDetailScreen extends StatelessWidget {
+class MpasiDetailScreen extends StatefulWidget {
   final Mpasi resep;
-  const MpasiDetailScreen({super.key, required this.resep});
+  final bool offlineOnly;
+  const MpasiDetailScreen({
+    super.key,
+    required this.resep,
+    this.offlineOnly = false,
+  });
+
+  @override
+  State<MpasiDetailScreen> createState() => _MpasiDetailScreenState();
+}
+
+class _MpasiDetailScreenState extends State<MpasiDetailScreen> {
+  final _favorites = MpasiFavoriteService();
+  bool _saved = false;
+  bool _busy = true;
+  Mpasi get resep => widget.resep;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSaved();
+  }
+
+  Future<void> _loadSaved() async {
+    try {
+      final ids = await _favorites.ids();
+      if (mounted) setState(() => _saved = ids.contains(resep.id));
+    } catch (_) {
+      // Tidak mengganggu tampilan detail saat baca favorit gagal.
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
+  Future<void> _toggleSaved() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      if (_saved) {
+        await _favorites.remove(resep.id);
+      } else {
+        await _favorites.save(resep);
+      }
+      if (!mounted) return;
+      setState(() => _saved = !_saved);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            !_saved
+                ? 'Resep telah dihapus dari daftar simpanan.'
+                : 'Resep berhasil disimpan. Kamu bisa membacanya kapan saja.',
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Resep belum berhasil disimpan. Silakan coba lagi.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
 
   // Mpasi.gizi API order: energy, carbohydrate, fat, protein, iron, zinc.
   static const _nutrition = [
@@ -31,7 +101,12 @@ class MpasiDetailScreen extends StatelessWidget {
     backgroundColor: Colors.white,
     body: CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: MpasiDetailHeader(resep: resep)),
+        SliverToBoxAdapter(
+          child: MpasiDetailHeader(
+            resep: resep,
+            offlineOnly: widget.offlineOnly,
+          ),
+        ),
         SliverToBoxAdapter(
           child: Center(
             child: ConstrainedBox(
@@ -46,6 +121,22 @@ class MpasiDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: FilledButton.icon(
+                        onPressed: _busy ? null : _toggleSaved,
+                        icon: Icon(
+                          _saved
+                              ? Icons.bookmark_rounded
+                              : Icons.bookmark_border_rounded,
+                        ),
+                        label: Text(_saved ? 'Tersimpan' : 'Simpan Resep'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _DetailColors.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       resep.nama,
                       style: const TextStyle(
