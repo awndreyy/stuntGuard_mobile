@@ -20,7 +20,7 @@ class EducationScreen extends StatefulWidget {
 }
 
 class _EducationScreenState extends State<EducationScreen> {
-  // 0 = Semua Rak (4 Container Terpilah), 1=Balita, 2=T1, 3=T2, 4=T3, 5=Tersimpan
+  // 0 = Semua container, 1 = Balita, 2 = T1, 3 = T2, 4 = T3, 5 = Tersimpan
   int _selectedCategory = 0;
   int _selectedPhaseGuide = 0;
 
@@ -30,8 +30,14 @@ class _EducationScreenState extends State<EducationScreen> {
   final Set<String> _bookmarkedIds = {};
   final Map<int, int> _containerPageMap = {1: 1, 2: 1, 3: 1, 4: 1};
 
-  static const List<_PhaseContainerMeta> _containerMetas = [
-    _PhaseContainerMeta(
+  /// Jumlah artikel pendamping (di luar artikel utama) per halaman.
+  static const int _pageSize = 4;
+
+  /// Jumlah artikel pendamping yang tampil di mode "Semua".
+  static const int _previewCount = 2;
+
+  static const List<_PhaseMeta> _phaseMetas = [
+    _PhaseMeta(
       categoryIndex: 1,
       shortLabel: 'Balita',
       pillLabel: 'Gizi Balita',
@@ -46,7 +52,7 @@ class _EducationScreenState extends State<EducationScreen> {
       gradientEnd: Color(0xFFF4FCF9),
       borderColor: Color(0xFFA7F3D0),
     ),
-    _PhaseContainerMeta(
+    _PhaseMeta(
       categoryIndex: 2,
       shortLabel: 'Trim 1',
       pillLabel: 'Trimester 1',
@@ -61,7 +67,7 @@ class _EducationScreenState extends State<EducationScreen> {
       gradientEnd: Color(0xFFFFFBF0),
       borderColor: Color(0xFFFDE68A),
     ),
-    _PhaseContainerMeta(
+    _PhaseMeta(
       categoryIndex: 3,
       shortLabel: 'Trim 2',
       pillLabel: 'Trimester 2',
@@ -76,7 +82,7 @@ class _EducationScreenState extends State<EducationScreen> {
       gradientEnd: Color(0xFFF5FAFF),
       borderColor: Color(0xFFBAE6FD),
     ),
-    _PhaseContainerMeta(
+    _PhaseMeta(
       categoryIndex: 4,
       shortLabel: 'Trim 3',
       pillLabel: 'Trimester 3',
@@ -93,109 +99,133 @@ class _EducationScreenState extends State<EducationScreen> {
     ),
   ];
 
-  static const List<_NutritionPhaseGuide> _phaseGuides = [
-    _NutritionPhaseGuide(
+  static const List<_NutritionGuide> _guides = [
+    _NutritionGuide(
       id: 'balita',
       title: 'Gizi Balita (0–59 Bulan)',
       badge: 'Fokus 1.000 HPK',
-      badgeColor: Color(0xFF0F766E),
-      badgeBg: Color(0xFFCCFBF1),
-      m1Label: 'Energi',
-      m1Value: '800–1350',
-      m1Unit: 'kkal',
-      m1Icon: Icons.local_fire_department_rounded,
-      m1Bg: Color(0xFFFEF3C7),
-      m1Color: Color(0xFFB45309),
-      m2Label: 'Protein',
-      m2Value: '15–25',
-      m2Unit: 'g/hr',
-      m2Icon: Icons.egg_alt_rounded,
-      m2Bg: Color(0xFFE6FAF3),
-      m2Color: Color(0xFF0F766E),
-      m3Label: 'Pola Makan',
-      m3Value: '3–4x+ASI',
-      m3Unit: '',
-      m3Icon: Icons.restaurant_rounded,
-      m3Bg: SG.pale,
-      m3Color: SG.primary,
+      metrics: [
+        _GuideMetric(
+          label: 'Energi',
+          value: '800–1350',
+          unit: 'kkal',
+          icon: Icons.local_fire_department_rounded,
+          bg: Color(0xFFFEF3C7),
+          color: Color(0xFFB45309),
+        ),
+        _GuideMetric(
+          label: 'Protein',
+          value: '15–25',
+          unit: 'g/hr',
+          icon: Icons.egg_alt_rounded,
+          bg: Color(0xFFE6FAF3),
+          color: Color(0xFF0F766E),
+        ),
+        _GuideMetric(
+          label: 'Pola Makan',
+          value: '3–4x',
+          unit: '+ ASI',
+          icon: Icons.restaurant_rounded,
+          bg: SG.pale,
+          color: SG.primary,
+        ),
+      ],
       tip: 'Prioritaskan lauk protein hewani (telur, ikan, hati ayam, daging) di setiap jadwal makan utama untuk mencegah stunting.',
     ),
-    _NutritionPhaseGuide(
+    _NutritionGuide(
       id: 'trimester1',
       title: 'Ibu Hamil Trimester 1',
       badge: 'Minggu 1–12',
-      badgeColor: Color(0xFFB45309),
-      badgeBg: Color(0xFFFEF3C7),
-      m1Label: 'Ekstra Kalori',
-      m1Value: '+180',
-      m1Unit: 'kkal',
-      m1Icon: Icons.bolt_rounded,
-      m1Bg: Color(0xFFFEF3C7),
-      m1Color: Color(0xFFB45309),
-      m2Label: 'Asam Folat',
-      m2Value: '600',
-      m2Unit: 'mcg',
-      m2Icon: Icons.spa_rounded,
-      m2Bg: Color(0xFFE6FAF3),
-      m2Color: Color(0xFF0F766E),
-      m3Label: 'Zat Besi',
-      m3Value: '27',
-      m3Unit: 'mg/hr',
-      m3Icon: Icons.favorite_rounded,
-      m3Bg: SG.pale,
-      m3Color: SG.primary,
+      metrics: [
+        _GuideMetric(
+          label: 'Ekstra Kalori',
+          value: '+180',
+          unit: 'kkal',
+          icon: Icons.bolt_rounded,
+          bg: Color(0xFFFEF3C7),
+          color: Color(0xFFB45309),
+        ),
+        _GuideMetric(
+          label: 'Asam Folat',
+          value: '600',
+          unit: 'mcg',
+          icon: Icons.spa_rounded,
+          bg: Color(0xFFE6FAF3),
+          color: Color(0xFF0F766E),
+        ),
+        _GuideMetric(
+          label: 'Zat Besi',
+          value: '27',
+          unit: 'mg/hr',
+          icon: Icons.favorite_rounded,
+          bg: SG.pale,
+          color: SG.primary,
+        ),
+      ],
       tip: 'Penuhi asam folat & vitamin B6. Bila mual di pagi hari, ubah jadwal makan menjadi 5–6 porsi kecil tapi sering.',
     ),
-    _NutritionPhaseGuide(
+    _NutritionGuide(
       id: 'trimester2',
       title: 'Ibu Hamil Trimester 2',
       badge: 'Minggu 13–27',
-      badgeColor: Color(0xFF0369A1),
-      badgeBg: Color(0xFFE0F2FE),
-      m1Label: 'Ekstra Kalori',
-      m1Value: '+300',
-      m1Unit: 'kkal',
-      m1Icon: Icons.bolt_rounded,
-      m1Bg: Color(0xFFFEF3C7),
-      m1Color: Color(0xFFB45309),
-      m2Label: 'Kalsium',
-      m2Value: '1.000',
-      m2Unit: 'mg/hr',
-      m2Icon: Icons.shield_rounded,
-      m2Bg: Color(0xFFE0F2FE),
-      m2Color: Color(0xFF0369A1),
-      m3Label: 'Protein',
-      m3Value: '+10',
-      m3Unit: 'g/hr',
-      m3Icon: Icons.set_meal_rounded,
-      m3Bg: Color(0xFFE6FAF3),
-      m3Color: Color(0xFF0F766E),
+      metrics: [
+        _GuideMetric(
+          label: 'Ekstra Kalori',
+          value: '+300',
+          unit: 'kkal',
+          icon: Icons.bolt_rounded,
+          bg: Color(0xFFFEF3C7),
+          color: Color(0xFFB45309),
+        ),
+        _GuideMetric(
+          label: 'Kalsium',
+          value: '1.000',
+          unit: 'mg/hr',
+          icon: Icons.shield_rounded,
+          bg: Color(0xFFE0F2FE),
+          color: Color(0xFF0369A1),
+        ),
+        _GuideMetric(
+          label: 'Protein',
+          value: '+10',
+          unit: 'g/hr',
+          icon: Icons.set_meal_rounded,
+          bg: Color(0xFFE6FAF3),
+          color: Color(0xFF0F766E),
+        ),
+      ],
       tip: 'Minum 1 Tablet Tambah Darah (TTD) setiap malam bersama air putih atau buah kaya vitamin C (jeda 2 jam dari susu/teh).',
     ),
-    _NutritionPhaseGuide(
+    _NutritionGuide(
       id: 'trimester3',
       title: 'Ibu Hamil Trimester 3',
       badge: 'Minggu 28–40',
-      badgeColor: SG.primary,
-      badgeBg: SG.pale,
-      m1Label: 'Ekstra Kalori',
-      m1Value: '+300',
-      m1Unit: 'kkal',
-      m1Icon: Icons.bolt_rounded,
-      m1Bg: Color(0xFFFEF3C7),
-      m1Color: Color(0xFFB45309),
-      m2Label: 'Protein',
-      m2Value: '+30',
-      m2Unit: 'g/hr',
-      m2Icon: Icons.egg_rounded,
-      m2Bg: SG.pale,
-      m2Color: SG.primary,
-      m3Label: 'Omega-3 DHA',
-      m3Value: '200+',
-      m3Unit: 'mg/hr',
-      m3Icon: Icons.psychology_rounded,
-      m3Bg: Color(0xFFE0F2FE),
-      m3Color: Color(0xFF0369A1),
+      metrics: [
+        _GuideMetric(
+          label: 'Ekstra Kalori',
+          value: '+300',
+          unit: 'kkal',
+          icon: Icons.bolt_rounded,
+          bg: Color(0xFFFEF3C7),
+          color: Color(0xFFB45309),
+        ),
+        _GuideMetric(
+          label: 'Protein',
+          value: '+30',
+          unit: 'g/hr',
+          icon: Icons.egg_rounded,
+          bg: SG.pale,
+          color: SG.primary,
+        ),
+        _GuideMetric(
+          label: 'Omega-3 DHA',
+          value: '200+',
+          unit: 'mg/hr',
+          icon: Icons.psychology_rounded,
+          bg: Color(0xFFE0F2FE),
+          color: Color(0xFF0369A1),
+        ),
+      ],
       tip: 'Tingkatkan konsumsi ikan kembung, telur, dan protein hewani untuk pematangan otak janin serta mencegah BBLR.',
     ),
   ];
@@ -236,30 +266,43 @@ class _EducationScreenState extends State<EducationScreen> {
     }
   }
 
-  int _resolvePhaseIndex(Informasi article) {
+  /// Menentukan container untuk sebuah artikel berdasarkan kategori & judul.
+  /// 1 = Balita, 2 = Trimester 1, 3 = Trimester 2, 4 = Trimester 3.
+  /// Mengembalikan null bila artikel bukan untuk balita / ibu hamil
+  /// trimester 1–3, sehingga tidak ditampilkan di halaman edukasi ini.
+  int? _resolvePhaseIndex(Informasi article) {
     final combined = '${article.kategori} ${article.judul}'.toLowerCase();
 
-    if (combined.contains('trimester 3') ||
-        combined.contains('trimester_3') ||
-        combined.contains('trim 3') ||
-        combined.contains('trimester iii')) {
+    if (RegExp(r'trimester[\s_-]*(3|iii)\b|trim[\s_-]*3\b')
+        .hasMatch(combined)) {
       return 4;
     }
-    if (combined.contains('trimester 2') ||
-        combined.contains('trimester_2') ||
-        combined.contains('trim 2') ||
-        combined.contains('trimester ii')) {
+    if (RegExp(r'trimester[\s_-]*(2|ii)\b|trim[\s_-]*2\b').hasMatch(combined)) {
       return 3;
     }
-    if (combined.contains('trimester 1') ||
-        combined.contains('trimester_1') ||
-        combined.contains('trim 1') ||
-        combined.contains('trimester i') ||
+    if (RegExp(r'trimester[\s_-]*(1|i)\b|trim[\s_-]*1\b').hasMatch(combined) ||
         combined.contains('awal kehamilan')) {
       return 2;
     }
-    return 1; // Default: Container Gizi & Pertumbuhan Balita
+    if (RegExp(r'balita|bayi|anak|mpasi|stunting|tumbuh kembang|\basi\b')
+        .hasMatch(combined)) {
+      return 1;
+    }
+    return null;
   }
+
+  /// Jumlah artikel database yang termasuk 4 kategori edukasi.
+  int get _visibleArticleCount =>
+      _articles.where((a) => _resolvePhaseIndex(a) != null).length;
+
+  /// Artikel nyata dari database untuk satu fase.
+  List<Informasi> _realArticles(int phaseIndex) =>
+      _articles.where((a) => _resolvePhaseIndex(a) == phaseIndex).toList();
+
+  _PhaseMeta _metaFor(int phaseIndex) => _phaseMetas.firstWhere(
+    (m) => m.categoryIndex == phaseIndex,
+    orElse: () => _phaseMetas.first,
+  );
 
   void _selectStoryPhase(int phaseIdx) {
     setState(() {
@@ -279,11 +322,7 @@ class _EducationScreenState extends State<EducationScreen> {
 
   void _toggleBookmark(String id) {
     setState(() {
-      if (_bookmarkedIds.contains(id)) {
-        _bookmarkedIds.remove(id);
-      } else {
-        _bookmarkedIds.add(id);
-      }
+      if (!_bookmarkedIds.remove(id)) _bookmarkedIds.add(id);
     });
   }
 
@@ -300,10 +339,10 @@ class _EducationScreenState extends State<EducationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final activeGuide = _phaseGuides[_selectedPhaseGuide];
-    final savedArticles = _articles
-        .where((a) => _bookmarkedIds.contains(a.id))
-        .toList();
+    final activeGuide = _guides[_selectedPhaseGuide];
+    final savedArticles = _articles.where((a) {
+      return _bookmarkedIds.contains(a.id) && _resolvePhaseIndex(a) != null;
+    }).toList();
 
     return RefreshIndicator(
       color: SG.primary,
@@ -317,7 +356,7 @@ class _EducationScreenState extends State<EducationScreen> {
             offset: const Offset(0, -26),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildFloatingGuideCard(activeGuide),
+              child: _buildDailySummaryCard(activeGuide),
             ),
           ),
           Padding(
@@ -328,30 +367,39 @@ class _EducationScreenState extends State<EducationScreen> {
                 _buildEditorialSectionHeader(),
                 const SizedBox(height: 12),
                 _buildContainerPillSwitcher(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 if (_loading)
-                  _buildLoadingState()
-                else if (_error != null)
-                  _buildErrorState()
-                else if (_articles.isEmpty)
-                  _buildEmptyDatabaseState()
-                else if (_selectedCategory == 5)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                      child: LinearProgressIndicator(
+                        minHeight: 4,
+                        color: SG.primary,
+                        backgroundColor: SG.pale,
+                      ),
+                    ),
+                  ),
+                if (_error != null && !_loading) _buildErrorBanner(),
+                if (_selectedCategory == 5)
                   _buildSavedContainer(savedArticles)
                 else if (_selectedCategory == 0)
-                  for (var i = 0; i < _containerMetas.length; i++) ...[
-                    _buildPhaseShelf(_containerMetas[i], isFocusedMode: false),
-                    if (i != _containerMetas.length - 1)
-                      const SizedBox(height: 16),
+                  for (var i = 0; i < _phaseMetas.length; i++) ...[
+                    _buildArticleContainer(
+                      _phaseMetas[i],
+                      isFocusedMode: false,
+                    ),
+                    if (i != _phaseMetas.length - 1) const SizedBox(height: 16),
                   ]
                 else
-                  for (final meta in _containerMetas.where(
-                    (m) => m.categoryIndex == _selectedCategory,
-                  ))
-                    _buildPhaseShelf(meta, isFocusedMode: true),
+                  _buildArticleContainer(
+                    _metaFor(_selectedCategory),
+                    isFocusedMode: true,
+                  ),
                 const SizedBox(height: 18),
                 const Center(
                   child: Text(
-                    'Seluruh artikel dimuat secara dinamis dari database server StuntGuard Jember.',
+                    'Artikel baru dari admin akan otomatis muncul di container fase yang sesuai.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 11,
@@ -534,7 +582,7 @@ class _EducationScreenState extends State<EducationScreen> {
                 // 4 Interactive Phase Journey Story Bubbles
                 Row(
                   children: [
-                    for (final meta in _containerMetas)
+                    for (final meta in _phaseMetas)
                       Expanded(child: _buildStoryBubble(meta)),
                   ],
                 ),
@@ -546,11 +594,8 @@ class _EducationScreenState extends State<EducationScreen> {
     );
   }
 
-  Widget _buildStoryBubble(_PhaseContainerMeta meta) {
+  Widget _buildStoryBubble(_PhaseMeta meta) {
     final isActive = _selectedPhaseGuide == (meta.categoryIndex - 1);
-    final count = _articles
-        .where((a) => _resolvePhaseIndex(a) == meta.categoryIndex)
-        .length;
 
     return GestureDetector(
       onTap: () => _selectStoryPhase(meta.categoryIndex),
@@ -598,33 +643,6 @@ class _EducationScreenState extends State<EducationScreen> {
                   ),
                 ),
               ),
-              Positioned(
-                right: -2,
-                bottom: -2,
-                child: Container(
-                  width: 21,
-                  height: 21,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: .15),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '$count',
-                    style: const TextStyle(
-                      color: SG.primary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 6),
@@ -645,202 +663,6 @@ class _EducationScreenState extends State<EducationScreen> {
     );
   }
 
-  Widget _buildFloatingGuideCard(_NutritionPhaseGuide guide) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0xFFF3DCE3)),
-        boxShadow: [
-          BoxShadow(
-            color: SG.primary.withValues(alpha: .13),
-            blurRadius: 26,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'RINGKASAN KEBUTUHAN HARIAN',
-                      style: TextStyle(
-                        color: SG.primary,
-                        fontSize: 9.5,
-                        letterSpacing: .5,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      guide.title,
-                      style: const TextStyle(
-                        color: SG.ink,
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: guide.badgeBg,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  guide.badge,
-                  style: TextStyle(
-                    color: guide.badgeColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTintedMetricTile(
-                  icon: guide.m1Icon,
-                  label: guide.m1Label,
-                  value: guide.m1Value,
-                  unit: guide.m1Unit,
-                  bg: guide.m1Bg,
-                  color: guide.m1Color,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildTintedMetricTile(
-                  icon: guide.m2Icon,
-                  label: guide.m2Label,
-                  value: guide.m2Value,
-                  unit: guide.m2Unit,
-                  bg: guide.m2Bg,
-                  color: guide.m2Color,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildTintedMetricTile(
-                  icon: guide.m3Icon,
-                  label: guide.m3Label,
-                  value: guide.m3Value,
-                  unit: guide.m3Unit,
-                  bg: guide.m3Bg,
-                  color: guide.m3Color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(11),
-            decoration: BoxDecoration(
-              color: SG.soft,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: SG.line.withValues(alpha: .7)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.tips_and_updates_rounded,
-                  color: SG.primary,
-                  size: 16,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    guide.tip,
-                    style: const TextStyle(
-                      color: SG.ink,
-                      fontSize: 11,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTintedMetricTile({
-    required IconData icon,
-    required String label,
-    required String value,
-    required String unit,
-    required Color bg,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 17, color: color),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: SG.muted,
-              fontSize: 9.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 2),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: value,
-                    style: const TextStyle(
-                      color: SG.ink,
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  if (unit.isNotEmpty)
-                    TextSpan(
-                      text: ' $unit',
-                      style: const TextStyle(color: SG.muted, fontSize: 9.5),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEditorialSectionHeader() {
     return Row(
       children: [
@@ -849,7 +671,7 @@ class _EducationScreenState extends State<EducationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Semua Artikel Informasi',
+                'Daftar Artikel',
                 style: TextStyle(
                   color: SG.ink,
                   fontSize: 17,
@@ -858,7 +680,7 @@ class _EducationScreenState extends State<EducationScreen> {
               ),
               SizedBox(height: 2),
               Text(
-                'Panduan terverifikasi untuk orang tua & ibu hamil',
+                'Khusus balita & ibu hamil trimester 1, 2, dan 3',
                 style: TextStyle(color: SG.muted, fontSize: 11.5),
               ),
             ],
@@ -871,7 +693,7 @@ class _EducationScreenState extends State<EducationScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            '${_articles.length} Artikel',
+            '$_visibleArticleCount Artikel',
             style: const TextStyle(
               color: SG.primary,
               fontSize: 10,
@@ -889,13 +711,13 @@ class _EducationScreenState extends State<EducationScreen> {
       child: Row(
         children: [
           _buildFilterPill(
-            label: 'Semua Rak (4)',
+            label: 'Semua (4)',
             isSelected: _selectedCategory == 0,
             activeColor: SG.ink,
             onTap: () => _selectCategory(0),
           ),
           const SizedBox(width: 8),
-          for (final meta in _containerMetas) ...[
+          for (final meta in _phaseMetas) ...[
             _buildFilterPill(
               label: meta.pillLabel,
               icon: meta.icon,
@@ -952,27 +774,343 @@ class _EducationScreenState extends State<EducationScreen> {
     );
   }
 
-  Widget _buildPhaseShelf(
-    _PhaseContainerMeta meta, {
+  // ---------------------------------------------------------------------------
+  // RINGKASAN KEBUTUHAN HARIAN
+  // ---------------------------------------------------------------------------
+  Widget _buildDailySummaryCard(_NutritionGuide guide) {
+    final meta = _phaseMetas[_selectedPhaseGuide];
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white,
+            Color.lerp(Colors.white, meta.gradientStart, .55)!,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: SG.primary.withValues(alpha: .12),
+            blurRadius: 30,
+            offset: const Offset(0, 14),
+          ),
+          BoxShadow(
+            color: meta.accent.withValues(alpha: .06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.topCenter,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 280),
+          switchInCurve: Curves.easeOutCubic,
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, .05),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          ),
+          child: KeyedSubtree(
+            key: ValueKey(guide.id),
+            child: _buildSummaryContent(guide, meta),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryContent(_NutritionGuide guide, _PhaseMeta meta) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 3,
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color: SG.primary,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Flexible(
+                        child: Text(
+                          'RINGKASAN KEBUTUHAN HARIAN',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: SG.primary,
+                            fontSize: 9.5,
+                            letterSpacing: .7,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    guide.title,
+                    style: const TextStyle(
+                      color: SG.ink,
+                      fontSize: 17,
+                      height: 1.2,
+                      letterSpacing: -.3,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.fromLTRB(9, 6, 11, 6),
+              decoration: BoxDecoration(
+                color: meta.badgeBg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: meta.accent.withValues(alpha: .18)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: meta.accent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    guide.badge,
+                    style: TextStyle(
+                      color: meta.accent,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < guide.metrics.length; i++) ...[
+              Expanded(child: _buildTintedMetricTile(guide.metrics[i])),
+              if (i != guide.metrics.length - 1) const SizedBox(width: 8),
+            ],
+          ],
+        ),
+        const SizedBox(height: 14),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [SG.soft, Colors.white],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: SG.line.withValues(alpha: .6)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: const BoxDecoration(
+                  color: SG.pale,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.tips_and_updates_rounded,
+                  color: SG.primary,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tips Gizi',
+                      style: TextStyle(
+                        color: SG.primary,
+                        fontSize: 10,
+                        letterSpacing: .3,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      guide.tip,
+                      style: const TextStyle(
+                        color: SG.ink,
+                        fontSize: 11,
+                        height: 1.45,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTintedMetricTile(_GuideMetric m) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 12, 10, 11),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [m.bg, Color.lerp(m.bg, Colors.white, .55)!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: .9),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: m.color.withValues(alpha: .14),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .85),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: m.color.withValues(alpha: .18),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(m.icon, size: 17, color: m.color),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            m.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: SG.muted,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              m.value,
+              style: const TextStyle(
+                color: SG.ink,
+                fontSize: 17,
+                height: 1.2,
+                letterSpacing: -.4,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(height: 7),
+          if (m.unit.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: m.color.withValues(alpha: .13),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                m.unit,
+                maxLines: 1,
+                style: TextStyle(
+                  color: m.color,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            )
+          else
+            Container(
+              width: 20,
+              height: 3.5,
+              decoration: BoxDecoration(
+                color: m.color.withValues(alpha: .55),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // CONTAINER ARTIKEL
+  // ---------------------------------------------------------------------------
+  Widget _buildArticleContainer(
+    _PhaseMeta meta, {
     required bool isFocusedMode,
   }) {
-    final phaseArticles = _articles
-        .where((a) => _resolvePhaseIndex(a) == meta.categoryIndex)
-        .toList();
-    const pageSize = 3;
-    final currentPage = _containerPageMap[meta.categoryIndex] ?? 1;
-    final totalPages = phaseArticles.isEmpty
-        ? 1
-        : (phaseArticles.length / pageSize).ceil();
-    final safePage = currentPage.clamp(1, totalPages);
-    final startIndex = (safePage - 1) * pageSize;
-    final pagedArticles = phaseArticles
-        .skip(startIndex)
-        .take(pageSize)
-        .toList();
+    final realCount = _realArticles(meta.categoryIndex).length;
+    final items = _realArticles(meta.categoryIndex);
+
+    final featured = items.isEmpty ? null : items.first;
+    final rest = items.length > 1 ? items.sublist(1) : const <Informasi>[];
+
+    final totalPages = rest.isEmpty ? 1 : (rest.length / _pageSize).ceil();
+    final safePage = (_containerPageMap[meta.categoryIndex] ?? 1).clamp(
+      1,
+      totalPages,
+    );
+    final visibleRest = isFocusedMode
+        ? rest.skip((safePage - 1) * _pageSize).take(_pageSize).toList()
+        : rest.take(_previewCount).toList();
+    final hiddenCount = rest.length - _previewCount;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [meta.gradientStart, meta.gradientEnd, Colors.white],
@@ -995,10 +1133,10 @@ class _EducationScreenState extends State<EducationScreen> {
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -1007,11 +1145,11 @@ class _EducationScreenState extends State<EducationScreen> {
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) => ColoredBox(
                     color: Colors.white,
-                    child: Icon(meta.icon, color: meta.accent, size: 23),
+                    child: Icon(meta.icon, color: meta.accent, size: 22),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 11),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1037,16 +1175,12 @@ class _EducationScreenState extends State<EducationScreen> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            '• ${phaseArticles.length} Bacaan',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: SG.muted,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        Text(
+                          '• $realCount Artikel',
+                          style: const TextStyle(
+                            color: SG.muted,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -1058,7 +1192,7 @@ class _EducationScreenState extends State<EducationScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: SG.ink,
-                        fontSize: 15,
+                        fontSize: 14.5,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -1066,46 +1200,27 @@ class _EducationScreenState extends State<EducationScreen> {
                       meta.subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: SG.muted, fontSize: 11),
+                      style: const TextStyle(color: SG.muted, fontSize: 10.5),
                     ),
                   ],
                 ),
               ),
-              if (phaseArticles.isNotEmpty) ...[
+              if (isFocusedMode) ...[
                 const SizedBox(width: 8),
                 InkWell(
-                  onTap: () =>
-                      _selectCategory(isFocusedMode ? 0 : meta.categoryIndex),
+                  onTap: () => _selectCategory(0),
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 11,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
+                    width: 32,
+                    height: 32,
+                    decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      shape: BoxShape.circle,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          isFocusedMode ? 'Semua Rak' : 'Ruang Baca',
-                          style: TextStyle(
-                            color: isFocusedMode ? SG.ink : meta.accent,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          isFocusedMode
-                              ? Icons.close_fullscreen_rounded
-                              : Icons.arrow_forward_rounded,
-                          size: 13,
-                          color: isFocusedMode ? SG.ink : meta.accent,
-                        ),
-                      ],
+                    child: const Icon(
+                      Icons.close_fullscreen_rounded,
+                      size: 15,
+                      color: SG.ink,
                     ),
                   ),
                 ),
@@ -1113,341 +1228,318 @@ class _EducationScreenState extends State<EducationScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          if (phaseArticles.isEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .88),
-                borderRadius: BorderRadius.circular(18),
-              ),
+          if (featured != null) _buildFeaturedCard(featured, meta),
+          if (featured == null && !_loading && _error == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
               child: Text(
-                'Belum ada artikel untuk ${meta.title} dari web admin.',
-                textAlign: TextAlign.center,
+                'Belum ada artikel dari database untuk ${meta.title}.',
                 style: const TextStyle(
                   color: SG.muted,
                   fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            )
-          else if (!isFocusedMode) ...[
-            SizedBox(
-              height: 266,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: phaseArticles.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 13),
-                itemBuilder: (context, index) => _buildVisualMagazineCard(
-                  phaseArticles[index],
-                  meta: meta,
-                  orderNumber: index + 1,
+                  height: 1.4,
                 ),
               ),
             ),
+          for (final a in visibleRest) ...[
             const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(Icons.swipe_rounded, size: 14, color: meta.accent),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: Text(
-                    'Geser ke samping untuk melihat ${phaseArticles.length} artikel',
-                    style: const TextStyle(color: SG.muted, fontSize: 10.5),
-                  ),
-                ),
-                Row(
-                  children: [
-                    for (var i = 0; i < phaseArticles.length.clamp(1, 5); i++)
-                      Container(
-                        margin: const EdgeInsets.only(left: 4),
-                        width: i == 0 ? 16 : 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: i == 0
-                              ? meta.accent
-                              : meta.accent.withValues(alpha: .35),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ] else ...[
-            for (var i = 0; i < pagedArticles.length; i++) ...[
-              _buildFocusedReaderCard(pagedArticles[i], meta: meta),
-              if (i != pagedArticles.length - 1) const SizedBox(height: 12),
-            ],
-            if (totalPages > 1) ...[
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Hal. $safePage / $totalPages (${phaseArticles.length} artikel)',
-                    style: const TextStyle(
-                      color: SG.muted,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      OutlinedButton(
-                        onPressed: safePage > 1
-                            ? () => setState(
-                                () => _containerPageMap[meta.categoryIndex] =
-                                    safePage - 1,
-                              )
-                            : null,
-                        child: const Text('← Sebelumnya'),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        onPressed: safePage < totalPages
-                            ? () => setState(
-                                () => _containerPageMap[meta.categoryIndex] =
-                                    safePage + 1,
-                              )
-                            : null,
-                        child: const Text('Berikutnya →'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+            _buildCompactRow(a, meta),
+          ],
+          if (!isFocusedMode && hiddenCount > 0) ...[
+            const SizedBox(height: 12),
+            _buildSeeAllButton(meta, hiddenCount),
+          ],
+          if (isFocusedMode && totalPages > 1) ...[
+            const SizedBox(height: 14),
+            _buildPager(meta, safePage, totalPages, rest.length + 1),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildVisualMagazineCard(
-    Informasi article, {
-    required _PhaseContainerMeta meta,
-    required int orderNumber,
-  }) {
-    final isBookmarked = _bookmarkedIds.contains(article.id);
-    return SizedBox(
-      width: 260,
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        clipBehavior: Clip.antiAlias,
-        elevation: 2,
-        shadowColor: SG.ink.withValues(alpha: .10),
-        child: InkWell(
-          onTap: () => _openArticle(article),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Visual Banner (Uses API thumbnailUrl first, falls back to Phase Illustration)
-              SizedBox(
-                height: 112,
-                width: double.infinity,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _ArticleCoverImage(
-                      thumbnailUrl: article.thumbnailUrl,
-                      meta: meta,
-                    ),
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.black.withValues(alpha: .42),
-                            Colors.black.withValues(alpha: .08),
-                            Colors.transparent,
-                          ],
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      right: 10,
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: .92),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              article.kategori,
-                              style: TextStyle(
-                                color: meta.accent,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          InkWell(
-                            onTap: () => _toggleBookmark(article.id),
-                            borderRadius: BorderRadius.circular(18),
-                            child: Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: .92),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                isBookmarked
-                                    ? Icons.bookmark_rounded
-                                    : Icons.bookmark_border_rounded,
-                                size: 17,
-                                color: isBookmarked ? SG.primary : SG.muted,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      left: 10,
-                      bottom: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: .42),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '#$orderNumber',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+  Widget _buildSeeAllButton(_PhaseMeta meta, int hiddenCount) {
+    return InkWell(
+      onTap: () => _selectCategory(meta.categoryIndex),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: meta.borderColor),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Lihat $hiddenCount artikel lainnya',
+              style: TextStyle(
+                color: meta.accent,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(13),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        article.judul,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: SG.ink,
-                          fontSize: 13.5,
-                          height: 1.3,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        article.ringkasan,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: SG.muted,
-                          fontSize: 11,
-                          height: 1.35,
-                        ),
-                      ),
-                      const Spacer(),
-                      const Divider(height: 14, color: SG.line),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              article.createdAt != null
-                                  ? _formatArticleDate(article.createdAt!)
-                                  : 'Panduan Gizi',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: SG.muted,
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: meta.badgeBg,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Baca',
-                                  style: TextStyle(
-                                    color: meta.accent,
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const SizedBox(width: 2),
-                                Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 13,
-                                  color: meta.accent,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 5),
+            Icon(Icons.arrow_forward_rounded, size: 14, color: meta.accent),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFocusedReaderCard(
-    Informasi article, {
-    required _PhaseContainerMeta meta,
-  }) {
+  Widget _buildPager(_PhaseMeta meta, int page, int totalPages, int total) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'Hal. $page / $totalPages ($total artikel)',
+            style: const TextStyle(
+              color: SG.muted,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        _pagerButton(
+          meta,
+          Icons.chevron_left_rounded,
+          page > 1
+              ? () => setState(
+                  () => _containerPageMap[meta.categoryIndex] = page - 1,
+                )
+              : null,
+        ),
+        const SizedBox(width: 8),
+        _pagerButton(
+          meta,
+          Icons.chevron_right_rounded,
+          page < totalPages
+              ? () => setState(
+                  () => _containerPageMap[meta.categoryIndex] = page + 1,
+                )
+              : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _pagerButton(_PhaseMeta meta, IconData icon, VoidCallback? onTap) {
+    final enabled = onTap != null;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: enabled ? meta.accent : Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: enabled ? meta.accent : SG.line),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: enabled ? Colors.white : SG.muted.withValues(alpha: .5),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBookmarkButton(Informasi article, {double size = 30}) {
     final isBookmarked = _bookmarkedIds.contains(article.id);
+    return InkWell(
+      onTap: () => _toggleBookmark(article.id),
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .92),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+          size: size * .57,
+          color: isBookmarked ? SG.primary : SG.muted,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeaturedCard(Informasi article, _PhaseMeta meta) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(22),
       clipBehavior: Clip.antiAlias,
+      elevation: 1.5,
+      shadowColor: SG.ink.withValues(alpha: .10),
+      child: InkWell(
+        onTap: () => _openArticle(article),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 140,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _ArticleCoverImage(
+                    thumbnailUrl: article.thumbnailUrl,
+                    meta: meta,
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withValues(alpha: .38),
+                          Colors.transparent,
+                        ],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.center,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    right: 10,
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: _coverChip(article.kategori, meta.accent),
+                        ),
+                        const Spacer(),
+                        _buildBookmarkButton(article),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    article.judul,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: SG.ink,
+                      fontSize: 14.5,
+                      height: 1.3,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    article.ringkasan,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: SG.muted,
+                      fontSize: 11.5,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          article.createdAt != null
+                              ? _formatArticleDate(article.createdAt!)
+                              : 'Panduan Gizi',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: SG.muted,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: meta.badgeBg,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Baca',
+                              style: TextStyle(
+                                color: meta.accent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(width: 3),
+                            Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 13,
+                              color: meta.accent,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _coverChip(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .92),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 9.5,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactRow(Informasi article, _PhaseMeta meta) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _openArticle(article),
         child: Padding(
-          padding: const EdgeInsets.all(13),
+          padding: const EdgeInsets.all(11),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 child: SizedBox(
-                  width: 82,
-                  height: 82,
+                  width: 78,
+                  height: 78,
                   child: _ArticleCoverImage(
                     thumbnailUrl: article.thumbnailUrl,
                     meta: meta,
@@ -1487,11 +1579,13 @@ class _EducationScreenState extends State<EducationScreen> {
                         InkWell(
                           onTap: () => _toggleBookmark(article.id),
                           child: Icon(
-                            isBookmarked
+                            _bookmarkedIds.contains(article.id)
                                 ? Icons.bookmark_rounded
                                 : Icons.bookmark_border_rounded,
                             size: 18,
-                            color: isBookmarked ? SG.primary : SG.muted,
+                            color: _bookmarkedIds.contains(article.id)
+                                ? SG.primary
+                                : SG.muted,
                           ),
                         ),
                       ],
@@ -1503,23 +1597,12 @@ class _EducationScreenState extends State<EducationScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: SG.ink,
-                        fontSize: 13.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         height: 1.3,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      article.ringkasan,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: SG.muted,
-                        fontSize: 11,
-                        height: 1.35,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
                     Row(
                       children: [
                         Expanded(
@@ -1555,7 +1638,7 @@ class _EducationScreenState extends State<EducationScreen> {
 
   Widget _buildSavedContainer(List<Informasi> savedArticles) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(26),
@@ -1584,215 +1667,49 @@ class _EducationScreenState extends State<EducationScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
           if (savedArticles.isEmpty)
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: 18),
               child: Center(
                 child: Text(
-                  'Belum ada artikel yang disimpan.',
-                  style: TextStyle(color: SG.muted, fontSize: 12),
+                  'Belum ada artikel yang disimpan.\nTekan ikon penanda pada artikel untuk menyimpannya.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: SG.muted, fontSize: 12, height: 1.4),
                 ),
               ),
             )
           else
-            SizedBox(
-              height: 210,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: savedArticles.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final a = savedArticles[index];
-                  final phaseIdx = _resolvePhaseIndex(a);
-                  final meta = _containerMetas.firstWhere(
-                    (m) => m.categoryIndex == phaseIdx,
-                    orElse: () => _containerMetas.first,
-                  );
-                  return SizedBox(
-                    width: 230,
-                    child: Material(
-                      color: SG.background,
-                      borderRadius: BorderRadius.circular(20),
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        onTap: () => _openArticle(a),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: 92,
-                              width: double.infinity,
-                              child: _ArticleCoverImage(
-                                thumbnailUrl: a.thumbnailUrl,
-                                meta: meta,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(11),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    a.kategori,
-                                    style: const TextStyle(
-                                      color: SG.primary,
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    a.judul,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: SG.ink,
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+            for (final a in savedArticles) ...[
+              const SizedBox(height: 10),
+              _buildCompactRow(a, _metaFor(_resolvePhaseIndex(a) ?? 1)),
+            ],
         ],
       ),
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildErrorBanner() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 42, horizontal: 20),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: SG.line),
-      ),
-      child: const Column(
-        children: [
-          CircularProgressIndicator(color: SG.primary),
-          SizedBox(height: 16),
-          Text(
-            'Memuat artikel edukasi...',
-            style: TextStyle(
-              color: SG.ink,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            'Menyinkronkan data Gizi Balita & Ibu Hamil Trimester 1–3',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: SG.muted, fontSize: 11.5),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
+        color: SG.pale,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFF4C6D4)),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: const BoxDecoration(
-              color: SG.pale,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.cloud_off_rounded,
-              color: SG.primary,
-              size: 27,
+          const Icon(Icons.cloud_off_rounded, color: SG.primary, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Artikel terbaru belum bisa dimuat. ${_error ?? ''}',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: SG.ink, fontSize: 11, height: 1.35),
             ),
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'Artikel gagal dimuat',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: SG.ink,
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            _error ?? 'Periksa koneksi API Laravel Anda.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: SG.muted, fontSize: 12, height: 1.4),
-          ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: _loadArticles,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Coba lagi'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyDatabaseState() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: SG.line),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: const BoxDecoration(
-              color: SG.pale,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.auto_stories_rounded,
-              color: SG.primary,
-              size: 27,
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Belum ada artikel edukasi',
-            style: TextStyle(
-              color: SG.ink,
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Artikel yang ditambahkan admin melalui web akan otomatis muncul di dalam container fase yang sesuai.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: SG.muted, fontSize: 12, height: 1.45),
-          ),
-          const SizedBox(height: 14),
-          OutlinedButton.icon(
-            onPressed: _loadArticles,
-            icon: const Icon(Icons.sync_rounded, size: 18),
-            label: const Text('Muat Ulang'),
-          ),
+          TextButton(onPressed: _loadArticles, child: const Text('Coba lagi')),
         ],
       ),
     );
@@ -1805,16 +1722,14 @@ class _ArticleCoverImage extends StatelessWidget {
   const _ArticleCoverImage({required this.thumbnailUrl, required this.meta});
 
   final String? thumbnailUrl;
-  final _PhaseContainerMeta meta;
+  final _PhaseMeta meta;
 
   @override
   Widget build(BuildContext context) {
     final hasNetworkImage =
         thumbnailUrl != null && thumbnailUrl!.trim().isNotEmpty;
 
-    if (!hasNetworkImage) {
-      return _buildFallbackAsset();
-    }
+    if (!hasNetworkImage) return _buildFallbackAsset();
 
     return Image.network(
       thumbnailUrl!,
@@ -1838,7 +1753,7 @@ class _ArticleCoverImage extends StatelessWidget {
   }
 }
 
-class _PhaseContainerMeta {
+class _PhaseMeta {
   final int categoryIndex;
   final String shortLabel;
   final String pillLabel;
@@ -1853,7 +1768,7 @@ class _PhaseContainerMeta {
   final Color gradientEnd;
   final Color borderColor;
 
-  const _PhaseContainerMeta({
+  const _PhaseMeta({
     required this.categoryIndex,
     required this.shortLabel,
     required this.pillLabel,
@@ -1870,56 +1785,36 @@ class _PhaseContainerMeta {
   });
 }
 
-class _NutritionPhaseGuide {
+class _GuideMetric {
+  final String label;
+  final String value;
+  final String unit;
+  final IconData icon;
+  final Color bg;
+  final Color color;
+
+  const _GuideMetric({
+    required this.label,
+    required this.value,
+    required this.unit,
+    required this.icon,
+    required this.bg,
+    required this.color,
+  });
+}
+
+class _NutritionGuide {
   final String id;
   final String title;
   final String badge;
-  final Color badgeColor;
-  final Color badgeBg;
-  final String m1Label;
-  final String m1Value;
-  final String m1Unit;
-  final IconData m1Icon;
-  final Color m1Bg;
-  final Color m1Color;
-  final String m2Label;
-  final String m2Value;
-  final String m2Unit;
-  final IconData m2Icon;
-  final Color m2Bg;
-  final Color m2Color;
-  final String m3Label;
-  final String m3Value;
-  final String m3Unit;
-  final IconData m3Icon;
-  final Color m3Bg;
-  final Color m3Color;
+  final List<_GuideMetric> metrics;
   final String tip;
 
-  const _NutritionPhaseGuide({
+  const _NutritionGuide({
     required this.id,
     required this.title,
     required this.badge,
-    required this.badgeColor,
-    required this.badgeBg,
-    required this.m1Label,
-    required this.m1Value,
-    required this.m1Unit,
-    required this.m1Icon,
-    required this.m1Bg,
-    required this.m1Color,
-    required this.m2Label,
-    required this.m2Value,
-    required this.m2Unit,
-    required this.m2Icon,
-    required this.m2Bg,
-    required this.m2Color,
-    required this.m3Label,
-    required this.m3Value,
-    required this.m3Unit,
-    required this.m3Icon,
-    required this.m3Bg,
-    required this.m3Color,
+    required this.metrics,
     required this.tip,
   });
 }

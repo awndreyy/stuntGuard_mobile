@@ -126,6 +126,11 @@ class _FakeInformasiService extends InformasiService {
   Future<Informasi> fetchArticle(String id) async => article;
 }
 
+class _EmptyInformasiService extends InformasiService {
+  @override
+  Future<List<Informasi>> fetchArticles() async => const [];
+}
+
 void main() {
   testWidgets('Splash screen displays the app branding', (
     WidgetTester tester,
@@ -177,6 +182,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(find.text('Artikel dari server'), 400);
+    await tester.pumpAndSettle();
     expect(find.text('Artikel dari server'), findsOneWidget);
     expect(find.text('Tumbuh Kembang'), findsOneWidget);
 
@@ -185,6 +192,37 @@ void main() {
 
     expect(find.text('Artikel Edukasi'), findsOneWidget);
     expect(find.text('Isi lengkap artikel dari server.'), findsOneWidget);
+  });
+
+  testWidgets('Education screen does not show local sample articles', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: EducationScreen(
+            isActive: true,
+            informationService: _EmptyInformasiService(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text(
+        'Belum ada artikel dari database untuk Gizi & Pertumbuhan Balita.',
+      ),
+      400,
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Belum ada artikel dari database untuk Gizi & Pertumbuhan Balita.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Protein Hewani di Setiap Piring MPASI'), findsNothing);
   });
 
   testWidgets('Growth chart shows dated details and switches metrics', (

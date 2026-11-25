@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:lottie/lottie.dart';
 import '../../models/balita.dart';
 import '../../models/informasi.dart';
 import '../../models/pengukuran.dart';
@@ -267,129 +268,166 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHeader(double gutter) => Container(
-    padding: EdgeInsets.fromLTRB(gutter, 20, gutter, 28),
+    width: double.infinity,
     decoration: const BoxDecoration(
-      color: _HomeColors.dark,
-      borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF9F1D47), Color(0xFFCB2458), Color(0xFFE84D78)],
+      ),
     ),
-    child: Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 680),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Image.asset(
-                    'assets/images/logo-StuntGuard.png',
-                    fit: BoxFit.contain,
-                    excludeFromSemantics: true,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    child: Stack(
+      clipBehavior: Clip.hardEdge,
+      children: [
+        const Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 64,
+          child: CustomPaint(painter: _HomeHeaderWavePainter()),
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(gutter, 18, gutter, 70),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 680),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Text.rich(
-                        TextSpan(
+                      Container(
+                        width: 42,
+                        height: 42,
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: Image.asset(
+                          'assets/images/logo-StuntGuard.png',
+                          fit: BoxFit.contain,
+                          excludeFromSemantics: true,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            TextSpan(
-                              text: 'Stunt',
-                              style: TextStyle(color: Colors.white),
+                            Text(
+                              'StuntGuard',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
-                            TextSpan(
-                              text: 'Guard',
-                              style: TextStyle(color: _HomeColors.yellow),
+                            Text(
+                              'Jember Bebas Stunting',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                              ),
                             ),
                           ],
                         ),
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -.5,
+                      ),
+                      IconButton(
+                        onPressed: widget.onOpenProfile,
+                        tooltip: 'Buka profil',
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size(48, 48),
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.white.withValues(alpha: .15),
+                          disabledForegroundColor: Colors.white60,
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: .35),
+                          ),
+                        ),
+                        icon: const Icon(Icons.person_outline_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Selamat Datang,',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 23,
+                                fontWeight: FontWeight.w800,
+                                height: 1.15,
+                              ),
+                            ),
+
+                            const SizedBox(height: 7),
+
+                            Container(
+                              constraints: const BoxConstraints(maxWidth: 220),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFD66B),
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              child: Text(
+                                _userName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFF851735),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  fontStyle: FontStyle.normal,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            const Text(
+                              'Temani setiap langkah tumbuh kembang si kecil.',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        'JEMBER',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          letterSpacing: 2,
-                          height: 1.6,
+
+                      const SizedBox(width: 8),
+
+                      SizedBox(
+                        width: 120,
+                        height: 125,
+                        child: Lottie.asset(
+                          'assets/animations/bayi_merangkak.json',
+                          fit: BoxFit.contain,
+                          repeat: true,
+                          animate: true,
+                          frameRate: FrameRate.max,
                         ),
                       ),
                     ],
                   ),
-                ),
-                IconButton.filledTonal(
-                  onPressed: widget.onOpenProfile,
-                  tooltip: 'Buka profil',
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: .15),
-                    foregroundColor: Colors.white,
-                    disabledForegroundColor: Colors.white60,
-                    minimumSize: const Size(48, 48),
-                  ),
-                  icon: const Icon(Icons.person_outline_rounded),
-                ),
-              ],
-            ),
-            const SizedBox(height: 28),
-            Text(
-              'Halo, $_userName!',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 25,
-                height: 1.25,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Temani setiap langkah\ntumbuh kembang si kecil.',
-              style: TextStyle(color: Colors.white, fontSize: 15, height: 1.5),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: _HomeColors.yellow,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.favorite_border_rounded,
-                    color: _HomeColors.dark,
-                    size: 16,
-                  ),
-                  SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      'Tumbuh sehat, bersama StuntGuard',
-                      style: TextStyle(
-                        color: _HomeColors.dark,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     ),
   );
 
@@ -1437,4 +1475,51 @@ class _GrowthChartPainter extends CustomPainter {
       oldDelegate.measurements.any(
         (element) => !measurements.contains(element),
       );
+}
+
+// Bentuk gelombang disamakan dengan header MPASI dan Profile.
+class _HomeHeaderWavePainter extends CustomPainter {
+  const _HomeHeaderWavePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final width = size.width;
+    final height = size.height;
+    final pink = Path()
+      ..moveTo(0, height * .29)
+      ..cubicTo(
+        width * .20, height * .72,
+        width * .37, height * .03,
+        width * .58, height * .38,
+      )
+      ..cubicTo(
+        width * .74, height * .72,
+        width * .91, height * .31,
+        width, height * .25,
+      )
+      ..lineTo(width, height)
+      ..lineTo(0, height)
+      ..close();
+    canvas.drawPath(pink, Paint()..color = const Color(0xFFFFA8BF));
+
+    final cream = Path()
+      ..moveTo(0, height * .66)
+      ..cubicTo(
+        width * .22, height * .96,
+        width * .37, height * .35,
+        width * .58, height * .72,
+      )
+      ..cubicTo(
+        width * .77, height * 1.03,
+        width * .92, height * .57,
+        width, height * .62,
+      )
+      ..lineTo(width, height)
+      ..lineTo(0, height)
+      ..close();
+    canvas.drawPath(cream, Paint()..color = _HomeColors.background);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
