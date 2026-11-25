@@ -40,7 +40,6 @@ class ProfileHeader extends StatelessWidget {
             child: CustomPaint(painter: _ProfileHeaderWavePainter()),
           ),
           SafeArea(
-            top: false,
             bottom: false,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 70),
