@@ -10,6 +10,7 @@ import '../../services/balita_service.dart';
 import '../../services/pengukuran_service.dart';
 import '../../theme/sg_theme.dart';
 import '../../widgets/sg_components.dart';
+import '../profile/widgets/profile_header.dart';
 import '../../widgets/who_result_card.dart';
 
 class CalculatorScreen extends StatefulWidget {
@@ -233,289 +234,416 @@ class _CalculatorPageState extends State<CalculatorScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => ScreenContent(
-    title: 'Kalkulator Gizi',
-    subtitle: 'Cek pertumbuhan si kecil dengan mudah menggunakan standar WHO.',
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.only(bottom: 120),
     children: [
-      Align(
-        alignment: Alignment.centerRight,
-        child: OutlinedButton.icon(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const MandiriHistoryScreen()),
-          ),
-          icon: const Icon(Icons.history),
-          label: const Text('Riwayat Mandiri'),
-        ),
+      const ProfileHeader(
+        title: 'Kalkulator Gizi',
+        highlight: 'Pantau Si Kecil',
+        description: 'Periksa pertumbuhan anak dengan panduan standar WHO.',
+        badge: 'Z-Score',
       ),
-      const SizedBox(height: 12),
-      if (_loadingChildren)
-        const SurfaceCard(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        )
-      else if (_loadError != null)
-        SurfaceCard(
-          child: Column(
-            children: [
-              Text(_loadError!, textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: _loadChildren,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Coba lagi'),
-              ),
-            ],
-          ),
-        )
-      else if (_children.isEmpty)
-        const SurfaceCard(
-          child: Text(
-            'Belum ada data anak. Tambahkan data anak terlebih dahulu '
-            'sebelum mencatat pengukuran.',
-            textAlign: TextAlign.center,
-          ),
-        )
-      else
-        SurfaceCard(
-          child: Form(
-            key: form,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Row(
               children: [
-                const Text(
-                  'A. Input Pengukuran',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                ),
-                const SizedBox(height: 15),
-                DropdownButtonFormField<String>(
-                  key: ValueKey('child-$_selectedChildId'),
-                  initialValue: _selectedChildId,
-                  decoration: const InputDecoration(labelText: 'Pilih anak'),
-                  items: _children
-                      .map(
-                        (child) => DropdownMenuItem(
-                          value: child.id,
-                          child: Text(child.nama),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: _saving
-                      ? null
-                      : (value) {
-                          setState(() {
-                            _selectedChildId = value;
-                            final child = _selectedChild;
-                            if (child != null) {
-                              _bodyPosition = _positionFor(
-                                child,
-                                _measurementDate,
-                              );
-                            }
-                            _result = null;
-                            _resultUnavailable = false;
-                            _savedLocally = false;
-                          });
-                          if (value != null) {
-                            _rememberSelectedChild(value);
-                          }
-                        },
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '2. Identitas Anak',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Jenis kelamin: ${_genderLabel(_selectedChild?.jenisKelamin)}',
-                ),
-                const SizedBox(height: 4),
-                Text('Usia: ${_ageLabel(_selectedChild, _measurementDate)}'),
-                const SizedBox(height: 18),
-                const Text(
-                  '3. Pengukuran Utama',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: weight,
-                  enabled: !_saving,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Berat badan (kg)',
-                    hintText: 'Contoh: 9,2',
-                  ),
-                  validator: (value) => _validateNumber(
-                    value,
-                    minimum: 1,
-                    maximum: 50,
-                    label: 'Berat badan',
-                  ),
-                  onChanged: (_) => setState(() {
-                    _result = null;
-                    _resultUnavailable = false;
-                    _savedLocally = false;
-                  }),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: height,
-                  enabled: !_saving,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Panjang / tinggi badan (cm)',
-                    hintText: 'Contoh: 74,5',
-                  ),
-                  validator: (value) => _validateNumber(
-                    value,
-                    minimum: 20,
-                    maximum: 150,
-                    label: 'Panjang/tinggi badan',
-                  ),
-                  onChanged: (_) => setState(() {
-                    _result = null;
-                    _resultUnavailable = false;
-                    _savedLocally = false;
-                  }),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  key: ValueKey('position-$_selectedChildId-$_bodyPosition'),
-                  initialValue: _bodyPosition,
-                  decoration: const InputDecoration(labelText: 'Posisi badan'),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'terlentang',
-                      child: Text('Terlentang (panjang badan)'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'berdiri',
-                      child: Text('Berdiri (tinggi badan)'),
-                    ),
-                  ],
-                  onChanged: _saving
-                      ? null
-                      : (value) => setState(() {
-                          _bodyPosition = value ?? _bodyPosition;
-                          _result = null;
-                          _resultUnavailable = false;
-                          _savedLocally = false;
-                        }),
-                ),
-                const SizedBox(height: 18),
-                const Text(
-                  '4. Pengukuran Tambahan (Opsional)',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: headCircumference,
-                  enabled: !_saving,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Lingkar kepala (cm)',
-                    hintText: 'Contoh: 45,5',
-                  ),
-                  validator: (value) => _validateOptionalNumber(
-                    value,
-                    minimum: 20,
-                    maximum: 70,
-                    label: 'Lingkar kepala',
-                  ),
-                  onChanged: (_) => setState(() {
-                    _result = null;
-                    _resultUnavailable = false;
-                    _savedLocally = false;
-                  }),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: lila,
-                  enabled: !_saving,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'LiLA (cm)',
-                    hintText: 'Contoh: 13,5',
-                  ),
-                  validator: (value) => _validateOptionalNumber(
-                    value,
-                    minimum: 5,
-                    maximum: 40,
-                    label: 'LiLA',
-                  ),
-                  onChanged: (_) => setState(() {
-                    _result = null;
-                    _resultUnavailable = false;
-                    _savedLocally = false;
-                  }),
-                ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: _saving ? null : _saveMeasurement,
-                  icon: _saving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.calculate_outlined),
-                  label: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      _saving ? 'Menghitung...' : '5. Hitung Z-score WHO',
+                Icon(Icons.monitor_heart_outlined, color: SG.primary, size: 19),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Pengukuran Mandiri',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      color: SG.ink,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 5),
+            const Text(
+              'Isi data berikut untuk melihat hasil pertumbuhan anak.',
+              style: TextStyle(fontSize: 12, color: SG.muted),
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const MandiriHistoryScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.history),
+                label: const Text('Riwayat Mandiri'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (_loadingChildren)
+              const SurfaceCard(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              )
+            else if (_loadError != null)
+              SurfaceCard(
+                child: Column(
+                  children: [
+                    Text(_loadError!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: _loadChildren,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Coba lagi'),
+                    ),
+                  ],
+                ),
+              )
+            else if (_children.isEmpty)
+              const SurfaceCard(
+                child: Text(
+                  'Belum ada data anak. Tambahkan data anak terlebih dahulu '
+                  'sebelum mencatat pengukuran.',
+                  textAlign: TextAlign.center,
+                ),
+              )
+            else
+              SurfaceCard(
+                child: Form(
+                  key: form,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _sectionTitle(
+                        Icons.child_care_rounded,
+                        'Pilih Anak',
+                        'Pilih anak yang akan diperiksa',
+                      ),
+                      const SizedBox(height: 15),
+                      DropdownButtonFormField<String>(
+                        key: ValueKey('child-$_selectedChildId'),
+                        initialValue: _selectedChildId,
+                        decoration: const InputDecoration(
+                          labelText: 'Nama anak',
+                          prefixIcon: Icon(Icons.child_care_outlined),
+                        ),
+                        items: _children
+                            .map(
+                              (child) => DropdownMenuItem(
+                                value: child.id,
+                                child: Text(child.nama),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: _saving
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  _selectedChildId = value;
+                                  final child = _selectedChild;
+                                  if (child != null) {
+                                    _bodyPosition = _positionFor(
+                                      child,
+                                      _measurementDate,
+                                    );
+                                  }
+                                  _result = null;
+                                  _resultUnavailable = false;
+                                  _savedLocally = false;
+                                });
+                                if (value != null) {
+                                  _rememberSelectedChild(value);
+                                }
+                              },
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(13),
+                        decoration: BoxDecoration(
+                          color: SG.soft,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: SG.line),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.badge_outlined,
+                              color: SG.primary,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Jenis kelamin: ${_genderLabel(_selectedChild?.jenisKelamin)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    'Usia: ${_ageLabel(_selectedChild, _measurementDate)}',
+                                    style: const TextStyle(
+                                      color: SG.muted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _sectionTitle(
+                        Icons.straighten_rounded,
+                        'Pengukuran Utama',
+                        'Masukkan berat dan panjang atau tinggi anak',
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: weight,
+                        enabled: !_saving,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Berat badan (kg)',
+                          prefixIcon: Icon(Icons.monitor_weight_outlined),
+                          hintText: 'Contoh: 9,2',
+                        ),
+                        validator: (value) => _validateNumber(
+                          value,
+                          minimum: 1,
+                          maximum: 50,
+                          label: 'Berat badan',
+                        ),
+                        onChanged: (_) => setState(() {
+                          _result = null;
+                          _resultUnavailable = false;
+                          _savedLocally = false;
+                        }),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: height,
+                        enabled: !_saving,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Panjang / tinggi badan (cm)',
+                          prefixIcon: Icon(Icons.height_rounded),
+                          hintText: 'Contoh: 74,5',
+                        ),
+                        validator: (value) => _validateNumber(
+                          value,
+                          minimum: 20,
+                          maximum: 150,
+                          label: 'Panjang/tinggi badan',
+                        ),
+                        onChanged: (_) => setState(() {
+                          _result = null;
+                          _resultUnavailable = false;
+                          _savedLocally = false;
+                        }),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        key: ValueKey(
+                          'position-$_selectedChildId-$_bodyPosition',
+                        ),
+                        initialValue: _bodyPosition,
+                        decoration: const InputDecoration(
+                          labelText: 'Posisi pengukuran',
+                          prefixIcon: Icon(Icons.accessibility_new_rounded),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'terlentang',
+                            child: Text('Terlentang (panjang badan)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'berdiri',
+                            child: Text('Berdiri (tinggi badan)'),
+                          ),
+                        ],
+                        onChanged: _saving
+                            ? null
+                            : (value) => setState(() {
+                                _bodyPosition = value ?? _bodyPosition;
+                                _result = null;
+                                _resultUnavailable = false;
+                                _savedLocally = false;
+                              }),
+                      ),
+                      const SizedBox(height: 18),
+                      _sectionTitle(
+                        Icons.tune_rounded,
+                        'Pengukuran Tambahan',
+                        'Opsional, boleh dikosongkan',
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: headCircumference,
+                        enabled: !_saving,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Lingkar kepala (cm)',
+                          prefixIcon: Icon(Icons.circle_outlined),
+                          hintText: 'Contoh: 45,5',
+                        ),
+                        validator: (value) => _validateOptionalNumber(
+                          value,
+                          minimum: 20,
+                          maximum: 70,
+                          label: 'Lingkar kepala',
+                        ),
+                        onChanged: (_) => setState(() {
+                          _result = null;
+                          _resultUnavailable = false;
+                          _savedLocally = false;
+                        }),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: lila,
+                        enabled: !_saving,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'LiLA (cm)',
+                          prefixIcon: Icon(
+                            Icons.radio_button_unchecked_rounded,
+                          ),
+                          hintText: 'Contoh: 13,5',
+                        ),
+                        validator: (value) => _validateOptionalNumber(
+                          value,
+                          minimum: 5,
+                          maximum: 40,
+                          label: 'LiLA',
+                        ),
+                        onChanged: (_) => setState(() {
+                          _result = null;
+                          _resultUnavailable = false;
+                          _savedLocally = false;
+                        }),
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton.icon(
+                        onPressed: _saving ? null : _saveMeasurement,
+                        icon: _saving
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.calculate_outlined),
+                        label: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(
+                            _saving ? 'Menghitung...' : 'Hitung Z-Score WHO',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (_result != null) ...[
+              const SizedBox(height: 16),
+              WhoResultCard(result: _result!),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: _savingLocal || _savedLocally
+                    ? null
+                    : _saveToLocalHistory,
+                icon: Icon(
+                  _savedLocally
+                      ? Icons.check_circle_outline
+                      : Icons.save_outlined,
+                ),
+                label: Text(
+                  _savingLocal
+                      ? 'Menyimpan...'
+                      : _savedLocally
+                      ? 'Tersimpan di HP'
+                      : 'Simpan ke Riwayat Mandiri',
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Riwayat ini hanya disimpan pada perangkat dan tidak memengaruhi pengukuran resmi petugas.',
+                style: TextStyle(color: SG.muted, fontSize: 12),
+              ),
+            ],
+            if (_resultUnavailable) ...[
+              const SizedBox(height: 16),
+              const SurfaceCard(
+                child: Text(
+                  'Server belum mengirimkan hasil perhitungan WHO. Tidak ada pengukuran yang disimpan.',
+                  style: TextStyle(color: SG.muted, height: 1.5),
+                ),
+              ),
+            ],
+          ],
         ),
-      if (_result != null) ...[
-        const SizedBox(height: 16),
-        WhoResultCard(result: _result!),
-        const SizedBox(height: 12),
-        FilledButton.icon(
-          onPressed: _savingLocal || _savedLocally ? null : _saveToLocalHistory,
-          icon: Icon(
-            _savedLocally ? Icons.check_circle_outline : Icons.save_outlined,
-          ),
-          label: Text(
-            _savingLocal
-                ? 'Menyimpan...'
-                : _savedLocally
-                ? 'Tersimpan di HP'
-                : 'Simpan ke Riwayat Mandiri',
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Riwayat ini hanya disimpan pada perangkat dan tidak memengaruhi pengukuran resmi petugas.',
-          style: TextStyle(color: SG.muted, fontSize: 12),
-        ),
-      ],
-      if (_resultUnavailable) ...[
-        const SizedBox(height: 16),
-        const SurfaceCard(
-          child: Text(
-            'Server belum mengirimkan hasil perhitungan WHO. Tidak ada pengukuran yang disimpan.',
-            style: TextStyle(color: SG.muted, height: 1.5),
-          ),
-        ),
-      ],
+      ),
     ],
   );
+
+  Widget _sectionTitle(IconData icon, String title, String caption) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 35,
+          width: 35,
+          decoration: BoxDecoration(
+            color: SG.pale,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Icon(icon, color: SG.primary, size: 20),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: SG.ink,
+                ),
+              ),
+              Text(
+                caption,
+                style: const TextStyle(fontSize: 11, color: SG.muted),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 double _parseNumber(String value) =>
