@@ -10,7 +10,7 @@ class ApiConfig {
       return configured.replaceFirst(RegExp(r'/+$'), '');
     }
 
-    return 'http://127.0.0.1:8000/api';
+    return 'https://stuntguard.wstif-polije.com/api';
   }
 
   static const Duration timeout = Duration(seconds: 30);
