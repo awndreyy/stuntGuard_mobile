@@ -3,14 +3,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/balita.dart';
 import '../../models/mandiri_record.dart';
-import '../../services/mandiri_history_service.dart';
-import 'mandiri_history_screen.dart';
 import '../../services/auth_service.dart';
 import '../../services/balita_service.dart';
+import '../../services/mandiri_history_service.dart';
 import '../../services/pengukuran_service.dart';
-import '../../theme/sg_theme.dart';
-import '../../widgets/sg_components.dart';
 import '../../widgets/who_result_card.dart';
+import 'mandiri_history_screen.dart';
+import 'widgets/calculator_components.dart';
+import 'widgets/calculator_header.dart';
 
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key, this.isActive = true});
@@ -64,11 +64,16 @@ class _CalculatorPageState extends State<CalculatorScreen> {
     try {
       final accountId = await _authService.localAccountId();
       final savedId = await _preferences.getString(_lastChildKey(accountId));
-      if (!mounted || _loadingChildren || _children.isEmpty) return;
+      if (!mounted || _loadingChildren) return;
 
-      final nextId = _children.any((child) => child.id == savedId)
-          ? savedId
-          : _children.first.id;
+      final childExists =
+          savedId != null && _children.any((child) => child.id == savedId);
+      if (_children.isEmpty || (savedId != null && !childExists)) {
+        await _loadChildren();
+        return;
+      }
+
+      final nextId = childExists ? savedId : _children.first.id;
       if (_selectedChildId == nextId) return;
 
       setState(() {
@@ -133,7 +138,6 @@ class _CalculatorPageState extends State<CalculatorScreen> {
       final accountId = await _authService.localAccountId();
       await _preferences.setString(_lastChildKey(accountId), childId);
     } catch (error) {
-      // Pilihan tetap berubah di layar meski penyimpanan lokal gagal.
       debugPrint('Tidak dapat menyimpan pilihan anak terakhir: $error');
     }
   }
@@ -220,7 +224,6 @@ class _CalculatorPageState extends State<CalculatorScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(_messageFromError(error))));
-    } finally {
       if (mounted) setState(() => _savingLocal = false);
     }
   }
@@ -232,124 +235,176 @@ class _CalculatorPageState extends State<CalculatorScreen> {
     return null;
   }
 
+  void _resetFormFields() {
+    setState(() {
+      _result = null;
+      _resultUnavailable = false;
+      _savedLocally = false;
+    });
+  }
+
   @override
-  Widget build(BuildContext context) => ScreenContent(
-    title: 'Kalkulator Gizi',
-    subtitle: 'Cek pertumbuhan si kecil dengan mudah menggunakan standar WHO.',
-    children: [
-      Align(
-        alignment: Alignment.centerRight,
-        child: OutlinedButton.icon(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const MandiriHistoryScreen()),
-          ),
-          icon: const Icon(Icons.history),
-          label: const Text('Riwayat Mandiri'),
-        ),
-      ),
-      const SizedBox(height: 12),
-      if (_loadingChildren)
-        const SurfaceCard(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        )
-      else if (_loadError != null)
-        SurfaceCard(
-          child: Column(
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    return ColoredBox(
+      color: CalcColors.background,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gutter = constraints.maxWidth > 600 ? 32.0 : 20.0;
+          return ListView(
+            key: const PageStorageKey('calculator-scroll'),
+            padding: EdgeInsets.only(bottom: 120 + bottomInset),
             children: [
-              Text(_loadError!, textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: _loadChildren,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Coba lagi'),
+              CalculatorHeader(
+                gutter: gutter,
+                onOpenHistory: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const MandiriHistoryScreen(),
+                  ),
+                ),
+              ),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(gutter, 20, gutter, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_loadingChildren)
+                          const CalcCard(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 28),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: CalcColors.primary,
+                                ),
+                              ),
+                            ),
+                          )
+                        else if (_loadError != null)
+                          _buildErrorCard()
+                        else if (_children.isEmpty)
+                          _buildEmptyChildrenCard()
+                        else ...[
+                          CalcChildSelectorCard(
+                            childrenList: _children,
+                            selectedChild: _selectedChild,
+                            selectedChildId: _selectedChildId,
+                            enabled: !_saving,
+                            genderText: _genderLabel(
+                              _selectedChild?.jenisKelamin,
+                            ),
+                            ageText: _ageLabel(
+                              _selectedChild,
+                              _measurementDate,
+                            ),
+                            ageBuilder: (child) =>
+                                _ageLabel(child, _measurementDate),
+                            onSelected: (value) {
+                              setState(() {
+                                _selectedChildId = value;
+                                final child = _selectedChild;
+                                if (child != null) {
+                                  _bodyPosition = _positionFor(
+                                    child,
+                                    _measurementDate,
+                                  );
+                                }
+                                _result = null;
+                                _resultUnavailable = false;
+                                _savedLocally = false;
+                              });
+                              _rememberSelectedChild(value);
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          _buildMeasurementFormCard(),
+                        ],
+
+                        if (_result != null) ...[
+                          const SizedBox(height: 24),
+                          const CalcSectionTitle(
+                            title: 'Hasil Analisis',
+                            subtitle:
+                                'Evaluasi pertumbuhan berdasarkan standar antropometri.',
+                          ),
+                          const SizedBox(height: 12),
+                          WhoResultCard(result: _result!),
+                          const SizedBox(height: 14),
+                          _buildSaveHistoryCard(),
+                        ],
+
+                        if (_resultUnavailable) ...[
+                          const SizedBox(height: 20),
+                          const CalcCard(
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline_rounded,
+                                  color: CalcColors.primary,
+                                ),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Server belum mengirimkan hasil perhitungan. Tidak ada pengukuran yang disimpan.',
+                                    style: TextStyle(
+                                      color: CalcColors.muted,
+                                      fontSize: 13,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
-          ),
-        )
-      else if (_children.isEmpty)
-        const SurfaceCard(
-          child: Text(
-            'Belum ada data anak. Tambahkan data anak terlebih dahulu '
-            'sebelum mencatat pengukuran.',
-            textAlign: TextAlign.center,
-          ),
-        )
-      else
-        SurfaceCard(
-          child: Form(
-            key: form,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'A. Input Pengukuran',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                ),
-                const SizedBox(height: 15),
-                DropdownButtonFormField<String>(
-                  key: ValueKey('child-$_selectedChildId'),
-                  initialValue: _selectedChildId,
-                  decoration: const InputDecoration(labelText: 'Pilih anak'),
-                  items: _children
-                      .map(
-                        (child) => DropdownMenuItem(
-                          value: child.id,
-                          child: Text(child.nama),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: _saving
-                      ? null
-                      : (value) {
-                          setState(() {
-                            _selectedChildId = value;
-                            final child = _selectedChild;
-                            if (child != null) {
-                              _bodyPosition = _positionFor(
-                                child,
-                                _measurementDate,
-                              );
-                            }
-                            _result = null;
-                            _resultUnavailable = false;
-                            _savedLocally = false;
-                          });
-                          if (value != null) {
-                            _rememberSelectedChild(value);
-                          }
-                        },
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '2. Identitas Anak',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Jenis kelamin: ${_genderLabel(_selectedChild?.jenisKelamin)}',
-                ),
-                const SizedBox(height: 4),
-                Text('Usia: ${_ageLabel(_selectedChild, _measurementDate)}'),
-                const SizedBox(height: 18),
-                const Text(
-                  '3. Pengukuran Utama',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMeasurementFormCard() {
+    return CalcCard(
+      child: Form(
+        key: form,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Pengukuran Utama',
+              style: TextStyle(
+                color: CalcColors.ink,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Masukkan hasil timbang dan ukur hari ini.',
+              style: TextStyle(color: CalcColors.muted, fontSize: 12),
+            ),
+            const SizedBox(height: 18),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final stacked = constraints.maxWidth < 320;
+                final weightField = TextFormField(
                   controller: weight,
                   enabled: !_saving,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Berat badan (kg)',
-                    hintText: 'Contoh: 9,2',
+                  decoration: calcInputDecoration(
+                    label: 'Berat badan (kg)',
+                    hint: 'Contoh: 9,2',
+                    icon: Icons.monitor_weight_outlined,
                   ),
                   validator: (value) => _validateNumber(
                     value,
@@ -357,22 +412,18 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                     maximum: 50,
                     label: 'Berat badan',
                   ),
-                  onChanged: (_) => setState(() {
-                    _result = null;
-                    _resultUnavailable = false;
-                    _savedLocally = false;
-                  }),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
+                  onChanged: (_) => _resetFormFields(),
+                );
+                final heightField = TextFormField(
                   controller: height,
                   enabled: !_saving,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Panjang / tinggi badan (cm)',
-                    hintText: 'Contoh: 74,5',
+                  decoration: calcInputDecoration(
+                    label: 'Panjang / tinggi (cm)',
+                    hint: 'Contoh: 74,5',
+                    icon: Icons.straighten_rounded,
                   ),
                   validator: (value) => _validateNumber(
                     value,
@@ -380,51 +431,125 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                     maximum: 150,
                     label: 'Panjang/tinggi badan',
                   ),
-                  onChanged: (_) => setState(() {
-                    _result = null;
-                    _resultUnavailable = false;
-                    _savedLocally = false;
-                  }),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  key: ValueKey('position-$_selectedChildId-$_bodyPosition'),
-                  initialValue: _bodyPosition,
-                  decoration: const InputDecoration(labelText: 'Posisi badan'),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'terlentang',
-                      child: Text('Terlentang (panjang badan)'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'berdiri',
-                      child: Text('Berdiri (tinggi badan)'),
-                    ),
+                  onChanged: (_) => _resetFormFields(),
+                );
+
+                if (stacked) {
+                  return Column(
+                    children: [
+                      weightField,
+                      const SizedBox(height: 14),
+                      heightField,
+                    ],
+                  );
+                }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: weightField),
+                    const SizedBox(width: 12),
+                    Expanded(child: heightField),
                   ],
-                  onChanged: _saving
-                      ? null
-                      : (value) => setState(() {
-                          _bodyPosition = value ?? _bodyPosition;
-                          _result = null;
-                          _resultUnavailable = false;
-                          _savedLocally = false;
-                        }),
+                );
+              },
+            ),
+            const SizedBox(height: 18),
+            const Text(
+              'Posisi Pengukuran',
+              style: TextStyle(
+                color: CalcColors.ink,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: CalcPositionOption(
+                    title: 'Terlentang',
+                    subtitle: 'Panjang badan (< 2 th)',
+                    icon: Icons.airline_seat_flat_rounded,
+                    selected: _bodyPosition == 'terlentang',
+                    onTap: _saving
+                        ? null
+                        : () => setState(() {
+                            _bodyPosition = 'terlentang';
+                            _result = null;
+                            _resultUnavailable = false;
+                            _savedLocally = false;
+                          }),
+                  ),
                 ),
-                const SizedBox(height: 18),
-                const Text(
-                  '4. Pengukuran Tambahan (Opsional)',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CalcPositionOption(
+                    title: 'Berdiri',
+                    subtitle: 'Tinggi badan (≥ 2 th)',
+                    icon: Icons.accessibility_new_rounded,
+                    selected: _bodyPosition == 'berdiri',
+                    onTap: _saving
+                        ? null
+                        : () => setState(() {
+                            _bodyPosition = 'berdiri';
+                            _result = null;
+                            _resultUnavailable = false;
+                            _savedLocally = false;
+                          }),
+                  ),
                 ),
-                const SizedBox(height: 10),
-                TextFormField(
+              ],
+            ),
+            const SizedBox(height: 22),
+            const Divider(height: 1, color: CalcColors.line),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Pengukuran Tambahan',
+                    style: TextStyle(
+                      color: CalcColors.ink,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: CalcColors.background,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: CalcColors.line),
+                  ),
+                  child: const Text(
+                    'Opsional',
+                    style: TextStyle(
+                      color: CalcColors.muted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final stacked = constraints.maxWidth < 320;
+                final headField = TextFormField(
                   controller: headCircumference,
                   enabled: !_saving,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Lingkar kepala (cm)',
-                    hintText: 'Contoh: 45,5',
+                  decoration: calcInputDecoration(
+                    label: 'Lingkar kepala (cm)',
+                    hint: 'Contoh: 45,5',
+                    icon: Icons.face_retouching_natural_rounded,
                   ),
                   validator: (value) => _validateOptionalNumber(
                     value,
@@ -432,22 +557,18 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                     maximum: 70,
                     label: 'Lingkar kepala',
                   ),
-                  onChanged: (_) => setState(() {
-                    _result = null;
-                    _resultUnavailable = false;
-                    _savedLocally = false;
-                  }),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
+                  onChanged: (_) => _resetFormFields(),
+                );
+                final lilaField = TextFormField(
                   controller: lila,
                   enabled: !_saving,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'LiLA (cm)',
-                    hintText: 'Contoh: 13,5',
+                  decoration: calcInputDecoration(
+                    label: 'LiLA (cm)',
+                    hint: 'Contoh: 13,5',
+                    icon: Icons.fitness_center_rounded,
                   ),
                   validator: (value) => _validateOptionalNumber(
                     value,
@@ -455,66 +576,168 @@ class _CalculatorPageState extends State<CalculatorScreen> {
                     maximum: 40,
                     label: 'LiLA',
                   ),
-                  onChanged: (_) => setState(() {
-                    _result = null;
-                    _resultUnavailable = false;
-                    _savedLocally = false;
-                  }),
+                  onChanged: (_) => _resetFormFields(),
+                );
+
+                if (stacked) {
+                  return Column(
+                    children: [
+                      headField,
+                      const SizedBox(height: 14),
+                      lilaField,
+                    ],
+                  );
+                }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: headField),
+                    const SizedBox(width: 12),
+                    Expanded(child: lilaField),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _saving ? null : _saveMeasurement,
+              style: FilledButton.styleFrom(
+                backgroundColor: CalcColors.primary,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(54),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: _saving ? null : _saveMeasurement,
-                  icon: _saving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.calculate_outlined),
-                  label: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      _saving ? 'Menghitung...' : '5. Hitung Z-score WHO',
-                    ),
-                  ),
+                textStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
                 ),
-              ],
+              ),
+              icon: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.calculate_outlined, size: 22),
+              label: Text(_saving ? 'Menghitung...' : 'Hitung Z-score'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSaveHistoryCard() {
+    return CalcCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          FilledButton.icon(
+            onPressed: _savingLocal || _savedLocally
+                ? null
+                : _saveToLocalHistory,
+            style: FilledButton.styleFrom(
+              backgroundColor: _savedLocally
+                  ? CalcColors.green
+                  : CalcColors.primary,
+              disabledBackgroundColor: _savedLocally
+                  ? CalcColors.greenPale
+                  : null,
+              disabledForegroundColor: _savedLocally
+                  ? CalcColors.green
+                  : null,
+              minimumSize: const Size.fromHeight(52),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            icon: Icon(
+              _savedLocally
+                  ? Icons.check_circle_rounded
+                  : Icons.bookmark_add_outlined,
+            ),
+            label: Text(
+              _savingLocal
+                  ? 'Menyimpan...'
+                  : _savedLocally
+                  ? 'Tersimpan di Riwayat Mandiri'
+                  : 'Simpan ke Riwayat Mandiri',
             ),
           ),
+          const SizedBox(height: 10),
+          const Text(
+            'Riwayat ini hanya disimpan pada perangkat dan tidak memengaruhi pengukuran resmi petugas.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: CalcColors.muted,
+              fontSize: 12,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorCard() => CalcCard(
+    child: Column(
+      children: [
+        const Icon(
+          Icons.wifi_off_rounded,
+          color: CalcColors.primary,
+          size: 36,
         ),
-      if (_result != null) ...[
-        const SizedBox(height: 16),
-        WhoResultCard(result: _result!),
         const SizedBox(height: 12),
-        FilledButton.icon(
-          onPressed: _savingLocal || _savedLocally ? null : _saveToLocalHistory,
-          icon: Icon(
-            _savedLocally ? Icons.check_circle_outline : Icons.save_outlined,
-          ),
-          label: Text(
-            _savingLocal
-                ? 'Menyimpan...'
-                : _savedLocally
-                ? 'Tersimpan di HP'
-                : 'Simpan ke Riwayat Mandiri',
-          ),
+        Text(
+          _loadError!,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: CalcColors.muted, height: 1.5),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Riwayat ini hanya disimpan pada perangkat dan tidak memengaruhi pengukuran resmi petugas.',
-          style: TextStyle(color: SG.muted, fontSize: 12),
-        ),
-      ],
-      if (_resultUnavailable) ...[
-        const SizedBox(height: 16),
-        const SurfaceCard(
-          child: Text(
-            'Server belum mengirimkan hasil perhitungan WHO. Tidak ada pengukuran yang disimpan.',
-            style: TextStyle(color: SG.muted, height: 1.5),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: _loadChildren,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: CalcColors.primary,
+            side: const BorderSide(color: CalcColors.line),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
           ),
+          icon: const Icon(Icons.refresh_rounded),
+          label: const Text('Coba lagi'),
         ),
       ],
-    ],
+    ),
+  );
+
+  Widget _buildEmptyChildrenCard() => CalcCard(
+    child: const Column(
+      children: [
+        Icon(
+          Icons.child_care_rounded,
+          color: CalcColors.primary,
+          size: 38,
+        ),
+        SizedBox(height: 12),
+        Text(
+          'Belum ada data anak. Tambahkan data anak terlebih dahulu di menu Profil sebelum mencatat pengukuran.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: CalcColors.muted,
+            fontSize: 13,
+            height: 1.5,
+          ),
+        ),
+      ],
+    ),
   );
 }
 
@@ -572,7 +795,8 @@ String _ageLabel(Balita? child, DateTime date) {
 }
 
 String _positionFor(Balita child, DateTime measurementDate) {
-  final birthDate = DateTime.parse(child.tanggalLahir);
+  final birthDate = DateTime.tryParse(child.tanggalLahir);
+  if (birthDate == null) return 'terlentang';
   var ageInMonths =
       (measurementDate.year - birthDate.year) * 12 +
       measurementDate.month -

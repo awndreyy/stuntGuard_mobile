@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../models/mandiri_record.dart';
 import '../../services/mandiri_history_service.dart';
-import '../../theme/sg_theme.dart';
-import '../../widgets/sg_components.dart';
 import '../../widgets/who_result_card.dart';
+import 'widgets/calculator_components.dart';
+import 'widgets/calculator_header.dart';
 
 class MandiriDetailScreen extends StatelessWidget {
   const MandiriDetailScreen({super.key, required this.record});
@@ -15,18 +16,41 @@ class MandiriDetailScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Hapus pengecekan mandiri?'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+        ),
+        title: const Text(
+          'Hapus pengecekan mandiri?',
+          style: TextStyle(
+            color: CalcColors.ink,
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+          ),
+        ),
         content: const Text(
           'Catatan akan dihapus dari HP dan tidak dapat dipulihkan. '
           'Data pengukuran resmi tidak terpengaruh.',
+          style: TextStyle(
+            color: CalcColors.muted,
+            fontSize: 13,
+            height: 1.5,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
+            style: TextButton.styleFrom(foregroundColor: CalcColors.muted),
             child: const Text('Batal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: CalcColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             child: const Text('Hapus'),
           ),
         ],
@@ -46,140 +70,210 @@ class MandiriDetailScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Detail Pengecekan'),
-      actions: [
-        IconButton(
-          tooltip: 'Hapus riwayat',
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () => _delete(context),
-        ),
-      ],
-    ),
-    body: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: SG.primaryDark,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              const CircleAvatar(
-                radius: 29,
-                backgroundColor: Colors.white,
-                child: Icon(Icons.child_care, size: 32, color: SG.primary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      record.childName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: CalcColors.background,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final gutter = constraints.maxWidth > 600 ? 32.0 : 20.0;
+            return ListView(
+              padding: EdgeInsets.only(bottom: 36 + bottomInset),
+              children: [
+                CalcSubPageHeader(
+                  gutter: gutter,
+                  title: record.childName,
+                  badgeText: 'Pengecekan Mandiri',
+                  subtitle: 'Diukur pada ${_date(record.measuredAt)}',
+                  trailingAction: OutlinedButton.icon(
+                    onPressed: () => _delete(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.white.withValues(alpha: .15),
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: .35),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _date(record.measuredAt),
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'PENGECEKAN MANDIRI',
+                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                    label: const Text(
+                      'Hapus',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-        const Text(
-          'Data Pengukuran',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        SurfaceCard(
-          child: Column(
-            children: [
-              _DetailRow('Berat badan', '${_number(record.weight)} kg'),
-              _DetailRow('Panjang / tinggi', '${_number(record.height)} cm'),
-              _DetailRow(
-                'Posisi badan',
-                record.bodyPosition == 'berdiri' ? 'Berdiri' : 'Terlentang',
-              ),
-              _DetailRow('Jenis kelamin', _gender(record.gender)),
-              if (record.headCircumference != null)
-                _DetailRow(
-                  'Lingkar kepala',
-                  '${_number(record.headCircumference!)} cm',
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(gutter, 16, gutter, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const CalcSectionTitle(
+                            title: 'Data Pengukuran',
+                            subtitle: 'Rincian antropometri yang dicatat.',
+                          ),
+                          const SizedBox(height: 12),
+                          CalcCard(
+                            child: Column(
+                              children: [
+                                _DetailRow(
+                                  icon: Icons.monitor_weight_outlined,
+                                  label: 'Berat badan',
+                                  value: '${_number(record.weight)} kg',
+                                ),
+                                const Divider(
+                                  height: 22,
+                                  color: CalcColors.line,
+                                ),
+                                _DetailRow(
+                                  icon: Icons.straighten_rounded,
+                                  label: 'Panjang / tinggi',
+                                  value: '${_number(record.height)} cm',
+                                ),
+                                const Divider(
+                                  height: 22,
+                                  color: CalcColors.line,
+                                ),
+                                _DetailRow(
+                                  icon: Icons.accessibility_new_rounded,
+                                  label: 'Posisi badan',
+                                  value: record.bodyPosition == 'berdiri'
+                                      ? 'Berdiri'
+                                      : 'Terlentang',
+                                ),
+                                const Divider(
+                                  height: 22,
+                                  color: CalcColors.line,
+                                ),
+                                _DetailRow(
+                                  icon: Icons.wc_rounded,
+                                  label: 'Jenis kelamin',
+                                  value: _gender(record.gender),
+                                ),
+                                if (record.headCircumference != null) ...[
+                                  const Divider(
+                                    height: 22,
+                                    color: CalcColors.line,
+                                  ),
+                                  _DetailRow(
+                                    icon: Icons.face_retouching_natural_rounded,
+                                    label: 'Lingkar kepala',
+                                    value:
+                                        '${_number(record.headCircumference!)} cm',
+                                  ),
+                                ],
+                                if (record.lila != null) ...[
+                                  const Divider(
+                                    height: 22,
+                                    color: CalcColors.line,
+                                  ),
+                                  _DetailRow(
+                                    icon: Icons.fitness_center_rounded,
+                                    label: 'LiLA',
+                                    value: '${_number(record.lila!)} cm',
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          const CalcSectionTitle(
+                            title: 'Hasil Analisis',
+                            subtitle:
+                                'Evaluasi Z-score berdasarkan data di atas.',
+                          ),
+                          const SizedBox(height: 12),
+                          WhoResultCard(result: record.result),
+                          const SizedBox(height: 14),
+                          const CalcCard(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.info_outline_rounded,
+                                  color: CalcColors.primary,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Hasil ini adalah estimasi pengukuran mandiri orang tua, '
+                                    'bukan pemeriksaan resmi. Untuk memastikan kondisi pertumbuhan '
+                                    'anak, lakukan pengukuran bersama petugas kesehatan.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      height: 1.5,
+                                      color: CalcColors.muted,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              if (record.lila != null)
-                _DetailRow('LiLA', '${_number(record.lila!)} cm'),
-            ],
-          ),
+              ],
+            );
+          },
         ),
-        const SizedBox(height: 18),
-        WhoResultCard(result: record.result),
-        const SizedBox(height: 14),
-        const SurfaceCard(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.info_outline, color: SG.primary),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Hasil ini adalah estimasi pengukuran mandiri orang tua, '
-                  'bukan pemeriksaan resmi. Untuk memastikan kondisi pertumbuhan '
-                  'anak, lakukan pengukuran bersama petugas kesehatan.',
-                  style: TextStyle(fontSize: 12, height: 1.5, color: SG.muted),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class _DetailRow extends StatelessWidget {
-  const _DetailRow(this.label, this.value);
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
   final String label;
   final String value;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 7),
-    child: Row(
+  Widget build(BuildContext context) {
+    return Row(
       children: [
+        Icon(icon, size: 19, color: CalcColors.primary),
+        const SizedBox(width: 10),
         Expanded(
-          child: Text(label, style: const TextStyle(color: SG.muted)),
+          child: Text(
+            label,
+            style: const TextStyle(color: CalcColors.muted, fontSize: 13),
+          ),
         ),
         Flexible(
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: CalcColors.ink,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
           ),
         ),
       ],
-    ),
-  );
+    );
+  }
 }
 
 String _number(double value) => value.toStringAsFixed(1).replaceAll('.', ',');

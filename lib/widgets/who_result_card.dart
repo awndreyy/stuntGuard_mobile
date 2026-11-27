@@ -120,7 +120,7 @@ class WhoResultCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Hasil perhitungan WHO',
+            'Hasil perhitungan',
             style: TextStyle(
               color: SG.ink,
               fontSize: 17,
@@ -148,7 +148,7 @@ class WhoResultCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Indikator WHO (Z-score)',
+            'Indikator (Z-score)',
             style: TextStyle(fontWeight: FontWeight.w700, color: SG.ink),
           ),
           const SizedBox(height: 8),
